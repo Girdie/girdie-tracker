@@ -4,245 +4,337 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 <meta name="apple-mobile-web-app-capable" content="yes">
-<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-status-bar-style" content="black">
 <title>Girdie Golf Tracker</title>
-<link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=Playfair+Display:wght@700&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Playfair+Display:wght@700&display=swap" rel="stylesheet">
 <style>
-  :root {
-    --bg: #0a1a0a;
-    --surface: #121f12;
-    --surface2: #1a2f1a;
-    --border: #2a4a2a;
-    --green: #4a9a4a;
-    --green-light: #7dd87d;
-    --green-dim: #3a7a3a;
-    --gold: #c8a84b;
-    --blue: #4a7aaa;
-    --purple: #8a4a9a;
-    --text: #e8f0e8;
-    --text-dim: #6a8a6a;
-    --error: #ff6b6b;
-    --error-bg: #2a1010;
-    --success: #4adf7a;
-  }
-  * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
-  html, body { height: 100%; background: var(--bg); color: var(--text); font-family: 'DM Mono', monospace; font-size: 14px; }
-  
-  /* TOP BAR */
-  .topbar {
-    background: linear-gradient(135deg, var(--surface2) 0%, var(--surface) 100%);
-    border-bottom: 2px solid var(--border);
-    padding: 14px 16px;
-    display: flex; align-items: center; gap: 12px;
-    position: sticky; top: 0; z-index: 100;
-  }
-  .topbar-icon {
-    width: 36px; height: 36px; background: var(--green);
-    border-radius: 50%; display: flex; align-items: center;
-    justify-content: center; font-size: 18px;
-    box-shadow: 0 2px 12px rgba(74,154,74,0.5);
-    flex-shrink: 0;
-  }
-  .topbar-title { font-family: 'Playfair Display', serif; font-size: 16px; color: var(--green-light); letter-spacing: 0.05em; }
-  .topbar-sub { font-size: 9px; color: var(--text-dim); letter-spacing: 0.15em; margin-top: 1px; }
-  .topbar-info { margin-left: auto; text-align: right; font-size: 11px; line-height: 1.5; }
-  .topbar-info .name { color: var(--green-light); font-weight: 500; }
-  .topbar-info .detail { color: var(--text-dim); }
+:root {
+  --bg: #f0f4f0;
+  --surface: #ffffff;
+  --surface2: #e8f0e8;
+  --border: #c8d8c8;
+  --border-focus: #4a9a4a;
+  --green: #2d7a2d;
+  --green-mid: #4a9a4a;
+  --green-light: #e8f5e8;
+  --green-btn: #3a8a3a;
+  --gold: #b8860b;
+  --gold-light: #fff8e0;
+  --gold-btn: #c8960b;
+  --blue: #2a5a9a;
+  --blue-light: #e8f0ff;
+  --blue-btn: #3a6aaa;
+  --purple: #7a3a8a;
+  --purple-light: #f5e8ff;
+  --purple-btn: #8a4a9a;
+  --text: #1a2a1a;
+  --text-mid: #4a5a4a;
+  --text-dim: #8a9a8a;
+  --error: #cc3333;
+  --error-bg: #fff0f0;
+  --error-border: #ffcccc;
+  --warning: #cc8800;
+  --warning-bg: #fff8e0;
+  --warning-border: #ffe0a0;
+  --success: #2d7a2d;
+  --success-bg: #e8f5e8;
+  --success-border: #a8d8a8;
+  --white: #ffffff;
+  --shadow: 0 2px 8px rgba(0,0,0,0.08);
+  --shadow-lg: 0 4px 16px rgba(0,0,0,0.12);
+  --radius: 12px;
+  --radius-sm: 8px;
+}
 
-  /* SAVE STATUS BAR */
-  .save-bar {
-    background: var(--surface);
-    border-bottom: 1px solid var(--border);
-    padding: 6px 16px;
-    display: flex; align-items: center; justify-content: space-between;
-    font-size: 10px; letter-spacing: 0.08em;
-  }
-  .save-indicator { display: flex; align-items: center; gap: 6px; }
-  .save-dot { width: 6px; height: 6px; border-radius: 50%; background: var(--text-dim); transition: background 0.3s; }
-  .save-dot.saved { background: var(--success); }
-  .save-dot.saving { background: var(--gold); animation: pulse 1s infinite; }
-  .save-dot.error { background: var(--error); }
-  @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:0.3} }
-  .sheets-status { color: var(--text-dim); }
-  .sheets-status.ok { color: var(--success); }
-  .sheets-status.pending { color: var(--gold); }
-  .sheets-status.fail { color: var(--error); }
+* { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+html { font-size: 16px; }
+body { background: var(--bg); color: var(--text); font-family: 'DM Sans', sans-serif; min-height: 100vh; }
 
-  /* TABS */
-  .tabs { display: flex; border-bottom: 1px solid var(--border); }
-  .tab {
-    flex: 1; padding: 12px; background: transparent; border: none;
-    border-bottom: 2px solid transparent; color: var(--text-dim);
-    font-family: 'DM Mono', monospace; font-size: 11px;
-    letter-spacing: 0.1em; cursor: pointer; text-transform: uppercase;
-    transition: all 0.2s;
-  }
-  .tab.active { background: var(--surface); border-bottom-color: var(--green); color: var(--green-light); }
+/* TOP BAR */
+.topbar {
+  background: var(--green);
+  padding: 14px 16px;
+  display: flex; align-items: center; gap: 12px;
+  position: sticky; top: 0; z-index: 100;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+}
+.topbar-logo {
+  width: 40px; height: 40px; background: white;
+  border-radius: 10px; display: flex; align-items: center;
+  justify-content: center; font-size: 22px; flex-shrink: 0;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.2);
+}
+.topbar-title { font-family: 'Playfair Display', serif; font-size: 18px; color: white; font-weight: 700; }
+.topbar-sub { font-size: 11px; color: rgba(255,255,255,0.7); letter-spacing: 0.1em; margin-top: 1px; text-transform: uppercase; }
+.topbar-info { margin-left: auto; text-align: right; }
+.topbar-name { color: white; font-size: 13px; font-weight: 600; }
+.topbar-detail { color: rgba(255,255,255,0.7); font-size: 11px; margin-top: 1px; }
 
-  /* MAIN CONTENT */
-  .main { padding: 16px; max-width: 560px; margin: 0 auto; padding-bottom: 40px; }
+/* SAVE BAR */
+.save-bar {
+  background: white;
+  border-bottom: 1px solid var(--border);
+  padding: 8px 16px;
+  display: flex; align-items: center; justify-content: space-between;
+  font-size: 11px; font-weight: 500; letter-spacing: 0.05em;
+}
+.save-indicator { display: flex; align-items: center; gap: 6px; color: var(--text-mid); }
+.save-dot { width: 8px; height: 8px; border-radius: 50%; background: var(--text-dim); transition: background 0.3s; flex-shrink: 0; }
+.save-dot.saved { background: var(--success); }
+.save-dot.saving { background: var(--gold); animation: pulse 1s infinite; }
+.save-dot.error { background: var(--error); }
+@keyframes pulse { 0%,100%{opacity:1} 50%{opacity:0.3} }
+.sheets-badge {
+  font-size: 10px; font-weight: 600; letter-spacing: 0.08em;
+  padding: 3px 8px; border-radius: 20px;
+  background: var(--surface2); color: var(--text-dim);
+}
+.sheets-badge.ok { background: var(--success-bg); color: var(--success); }
+.sheets-badge.pending { background: var(--warning-bg); color: var(--warning); }
+.sheets-badge.fail { background: var(--error-bg); color: var(--error); }
 
-  /* SECTIONS */
-  .section { margin-bottom: 20px; }
-  .section-title {
-    font-size: 9px; letter-spacing: 0.2em; color: var(--green);
-    text-transform: uppercase; margin-bottom: 10px;
-    padding-bottom: 6px; border-bottom: 1px solid var(--surface2);
-  }
+/* TABS */
+.tabs { display: flex; background: white; border-bottom: 2px solid var(--border); }
+.tab {
+  flex: 1; padding: 14px 8px;
+  background: transparent; border: none; border-bottom: 3px solid transparent;
+  margin-bottom: -2px;
+  color: var(--text-dim); font-family: 'DM Sans', sans-serif;
+  font-size: 13px; font-weight: 600; cursor: pointer;
+  letter-content: 0.02em; transition: all 0.2s;
+}
+.tab.active { color: var(--green); border-bottom-color: var(--green); }
 
-  /* FORM FIELDS */
-  .row2 { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 10px; }
-  .field label { display: block; font-size: 9px; color: var(--text-dim); letter-spacing: 0.1em; text-transform: uppercase; margin-bottom: 4px; }
-  .field input, .field select {
-    width: 100%; background: var(--bg); border: 1px solid var(--border);
-    border-radius: 6px; color: var(--text); padding: 9px 10px;
-    font-family: 'DM Mono', monospace; font-size: 13px; outline: none;
-    transition: border-color 0.2s;
-  }
-  .field input:focus, .field select:focus { border-color: var(--green); }
-  .field select option { background: var(--surface); }
+/* MAIN */
+.main { padding: 16px; max-width: 560px; margin: 0 auto; padding-bottom: 48px; }
 
-  /* GROUP CARDS */
-  .group-card {
-    background: var(--surface);
-    border: 1px solid var(--border);
-    border-radius: 10px; padding: 12px; margin-bottom: 8px;
-    transition: border-color 0.2s;
-  }
-  .group-card.filled { border-color: var(--green-dim); }
-  .group-header { display: flex; align-items: center; gap: 8px; margin-bottom: 10px; }
-  .group-num { font-size: 11px; color: var(--green); font-weight: 500; min-width: 28px; }
-  .group-time {
-    flex: 1; background: var(--bg); border: 1px solid var(--border);
-    border-radius: 6px; color: var(--text); padding: 8px 10px;
-    font-family: 'DM Mono', monospace; font-size: 13px; outline: none;
-  }
-  .group-time:focus { border-color: var(--green); }
-  .remove-btn {
-    background: none; border: none; color: var(--border);
-    cursor: pointer; font-size: 20px; line-height: 1; padding: 0 4px;
-    transition: color 0.2s;
-  }
-  .remove-btn:hover { color: var(--error); }
+/* CARD */
+.card {
+  background: var(--surface);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow);
+  padding: 16px;
+  margin-bottom: 16px;
+}
 
-  /* SELECTOR ROW */
-  .sel-row { display: flex; gap: 10px; margin-bottom: 10px; }
-  .sel-group { flex: 1; }
-  .sel-label { font-size: 9px; color: var(--text-dim); letter-spacing: 0.08em; text-transform: uppercase; margin-bottom: 5px; }
-  .sel-btns { display: flex; gap: 3px; }
-  .sel-btn {
-    flex: 1; height: 42px; background: var(--bg);
-    border: 2px solid var(--border); border-radius: 6px;
-    color: var(--text-dim); font-size: 16px; font-family: 'DM Mono', monospace;
-    cursor: pointer; transition: all 0.1s; padding: 0;
-  }
-  .sel-btn:active { transform: scale(0.92); }
-  .sel-btn.sel-green.active { background: var(--green); border-color: var(--green); color: #fff; font-weight: 500; }
-  .sel-btn.sel-gold.active { background: var(--gold); border-color: var(--gold); color: #000; font-weight: 500; }
-  .sel-btn.sel-blue.active { background: var(--blue); border-color: var(--blue); color: #fff; font-weight: 500; }
-  .sel-btn.sel-purple.active { background: var(--purple); border-color: var(--purple); color: #fff; font-weight: 500; }
+/* SECTION TITLE */
+.section-title {
+  font-size: 11px; font-weight: 700; letter-spacing: 0.12em;
+  color: var(--green); text-transform: uppercase;
+  margin-bottom: 14px; padding-bottom: 8px;
+  border-bottom: 2px solid var(--green-light);
+}
 
-  /* NOTES */
-  .notes-row { display: flex; gap: 10px; align-items: flex-end; }
-  .notes-field { flex: 1; }
-  .notes-input {
-    width: 100%; background: var(--bg); border: 1px solid var(--border);
-    border-radius: 6px; color: var(--text); padding: 9px 10px;
-    font-family: 'DM Mono', monospace; font-size: 12px; outline: none;
-  }
-  .notes-input:focus { border-color: var(--green); }
+/* FORM */
+.row2 { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 10px; }
+.field { display: flex; flex-direction: column; gap: 5px; }
+.field label { font-size: 11px; font-weight: 600; color: var(--text-mid); letter-spacing: 0.05em; }
+.field input, .field select {
+  width: 100%; background: var(--bg);
+  border: 2px solid var(--border); border-radius: var(--radius-sm);
+  color: var(--text); padding: 11px 12px;
+  font-family: 'DM Sans', sans-serif; font-size: 15px; outline: none;
+  transition: border-color 0.2s, background 0.2s;
+}
+.field input:focus, .field select:focus {
+  border-color: var(--green); background: white;
+}
+.field select option { background: white; }
 
-  /* ADD GROUP */
-  .add-btn {
-    width: 100%; padding: 11px; background: transparent;
-    border: 1px dashed var(--border); border-radius: 8px;
-    color: var(--green); cursor: pointer; font-family: 'DM Mono', monospace;
-    font-size: 12px; letter-spacing: 0.08em; margin-top: 4px;
-    transition: border-color 0.2s, color 0.2s;
-  }
-  .add-btn:hover { border-color: var(--green); }
+/* GROUP CARDS */
+.group-card {
+  background: var(--bg);
+  border: 2px solid var(--border);
+  border-radius: var(--radius); padding: 14px; margin-bottom: 10px;
+  transition: border-color 0.2s, box-shadow 0.2s;
+}
+.group-card.filled {
+  border-color: var(--green-mid);
+  background: white;
+  box-shadow: var(--shadow);
+}
+.group-card.has-warning { border-color: var(--warning); }
+.group-header { display: flex; align-items: center; gap: 10px; margin-bottom: 12px; }
+.group-num {
+  width: 32px; height: 32px; background: var(--green);
+  border-radius: 8px; display: flex; align-items: center; justify-content: center;
+  color: white; font-size: 13px; font-weight: 700; flex-shrink: 0;
+}
+.group-card.filled .group-num { background: var(--green); }
+.group-time {
+  flex: 1; background: var(--bg); border: 2px solid var(--border);
+  border-radius: var(--radius-sm); color: var(--text);
+  padding: 10px 12px; font-family: 'DM Sans', sans-serif; font-size: 15px; outline: none;
+  transition: border-color 0.2s;
+}
+.group-time:focus { border-color: var(--green); background: white; }
+.remove-btn {
+  width: 34px; height: 34px; background: none;
+  border: 2px solid var(--border); border-radius: 8px;
+  color: var(--text-dim); cursor: pointer; font-size: 18px;
+  display: flex; align-items: center; justify-content: center;
+  transition: all 0.2s; flex-shrink: 0;
+}
+.remove-btn:hover { border-color: var(--error); color: var(--error); background: var(--error-bg); }
 
-  /* TOTALS GRID */
-  .totals-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; }
-  .stat-box { background: var(--surface2); border-radius: 8px; padding: 10px 8px; text-align: center; }
-  .stat-box.large .stat-val { font-size: 22px; }
-  .stat-val { font-size: 18px; font-weight: 500; color: var(--green-light); font-family: 'Playfair Display', serif; }
-  .stat-label { font-size: 8px; color: var(--text-dim); letter-spacing: 0.1em; text-transform: uppercase; margin-top: 3px; }
+/* VALIDATION WARNING */
+.group-warning {
+  background: var(--warning-bg); border: 1px solid var(--warning-border);
+  border-radius: 6px; padding: 6px 10px; margin-bottom: 10px;
+  font-size: 12px; color: var(--warning); font-weight: 500;
+  display: none;
+}
+.group-warning.show { display: block; }
 
-  /* RATE BOX */
-  .rate-row { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-top: 8px; }
-  .rate-box { background: var(--surface2); border-radius: 8px; padding: 10px; text-align: center; }
-  .rate-val { font-size: 20px; font-weight: 500; font-family: 'Playfair Display', serif; }
-  .rate-val.green { color: var(--green-light); }
-  .rate-val.gold { color: var(--gold); }
-  .rate-label { font-size: 8px; color: var(--text-dim); letter-spacing: 0.1em; text-transform: uppercase; margin-top: 3px; }
+/* SELECTOR */
+.sel-row { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 10px; }
+.sel-group { display: flex; flex-direction: column; gap: 5px; }
+.sel-label { font-size: 11px; font-weight: 600; color: var(--text-mid); letter-spacing: 0.04em; }
+.sel-btns { display: flex; gap: 4px; }
+.sel-btn {
+  flex: 1; height: 48px;
+  background: var(--bg); border: 2px solid var(--border);
+  border-radius: 8px; color: var(--text-dim);
+  font-size: 17px; font-weight: 600; font-family: 'DM Sans', sans-serif;
+  cursor: pointer; transition: all 0.12s; padding: 0;
+  display: flex; align-items: center; justify-content: center;
+}
+.sel-btn:active { transform: scale(0.88); }
 
-  /* ERROR / SUCCESS BANNERS */
-  .banner { border-radius: 8px; padding: 10px 14px; margin-bottom: 12px; font-size: 12px; }
-  .banner.error { background: var(--error-bg); border: 1px solid #6a2a2a; color: var(--error); }
-  .banner.success { background: #0a2a1a; border: 1px solid var(--green-dim); color: var(--success); }
+/* Green selector */
+.sel-btn.sel-green.active { background: var(--green-btn); border-color: var(--green-btn); color: white; box-shadow: 0 2px 6px rgba(45,122,45,0.35); }
+.sel-btn.sel-green:not(.active):hover { border-color: var(--green-btn); color: var(--green-btn); }
 
-  /* ACTION BUTTONS */
-  .action-row { display: flex; gap: 10px; margin-top: 16px; }
-  .btn {
-    flex: 1; padding: 15px; border: none; border-radius: 10px;
-    font-family: 'DM Mono', monospace; font-size: 13px;
-    letter-spacing: 0.05em; cursor: pointer; transition: all 0.2s;
-  }
-  .btn-outline { background: transparent; border: 1px solid var(--border); color: var(--green-light); }
-  .btn-outline:hover { border-color: var(--green); }
-  .btn-primary { background: var(--green); color: #fff; }
-  .btn-primary:hover { background: var(--green-dim); }
-  .btn-primary.success { background: #2a5a2a; }
-  .btn-primary.error-state { background: #6a2a2a; }
-  .btn-primary:disabled { opacity: 0.6; cursor: not-allowed; }
-  .btn-secondary { background: var(--surface2); color: var(--text); border: 1px solid var(--border); }
+/* Gold selector */
+.sel-btn.sel-gold.active { background: var(--gold-btn); border-color: var(--gold-btn); color: white; box-shadow: 0 2px 6px rgba(200,150,11,0.35); }
+.sel-btn.sel-gold:not(.active):hover { border-color: var(--gold-btn); color: var(--gold-btn); }
 
-  /* SUMMARY */
-  .summary-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 10px; }
-  .summary-cell { background: var(--surface2); border-radius: 6px; padding: 8px 10px; }
-  .summary-key { font-size: 9px; color: var(--text-dim); letter-spacing: 0.1em; text-transform: uppercase; }
-  .summary-val { font-size: 13px; color: var(--text); margin-top: 3px; }
+/* Blue selector */
+.sel-btn.sel-blue.active { background: var(--blue-btn); border-color: var(--blue-btn); color: white; box-shadow: 0 2px 6px rgba(42,90,154,0.35); }
+.sel-btn.sel-blue:not(.active):hover { border-color: var(--blue-btn); color: var(--blue-btn); }
 
-  /* LOG TABLE */
-  .log-wrap { overflow-x: auto; }
-  table { width: 100%; border-collapse: collapse; font-size: 11px; }
-  th { padding: 6px 4px; color: var(--text-dim); text-align: left; border-bottom: 1px solid var(--border); font-weight: 400; letter-spacing: 0.05em; white-space: nowrap; }
-  td { padding: 6px 4px; border-bottom: 1px solid var(--surface2); }
+/* Purple selector */
+.sel-btn.sel-purple.active { background: var(--purple-btn); border-color: var(--purple-btn); color: white; box-shadow: 0 2px 6px rgba(122,58,138,0.35); }
+.sel-btn.sel-purple:not(.active):hover { border-color: var(--purple-btn); color: var(--purple-btn); }
 
-  /* PENDING QUEUE BADGE */
-  .queue-badge {
-    display: inline-block; background: var(--gold); color: #000;
-    border-radius: 4px; padding: 1px 6px; font-size: 9px;
-    letter-spacing: 0.05em; margin-left: 6px;
-  }
+/* NOTES ROW */
+.notes-row { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+.notes-input {
+  width: 100%; background: var(--bg); border: 2px solid var(--border);
+  border-radius: var(--radius-sm); color: var(--text);
+  padding: 10px 12px; font-family: 'DM Sans', sans-serif; font-size: 14px; outline: none;
+  transition: border-color 0.2s;
+}
+.notes-input:focus { border-color: var(--green); background: white; }
+
+/* ADD GROUP + DUPE */
+.group-actions { display: flex; gap: 10px; margin-top: 4px; }
+.add-btn {
+  flex: 1; padding: 13px; background: white;
+  border: 2px dashed var(--border); border-radius: var(--radius);
+  color: var(--green); cursor: pointer; font-family: 'DM Sans', sans-serif;
+  font-size: 14px; font-weight: 600; transition: all 0.2s;
+}
+.add-btn:hover { border-color: var(--green); background: var(--green-light); }
+.dupe-btn {
+  padding: 13px 16px; background: white;
+  border: 2px solid var(--border); border-radius: var(--radius);
+  color: var(--text-mid); cursor: pointer; font-family: 'DM Sans', sans-serif;
+  font-size: 13px; font-weight: 600; transition: all 0.2s; white-space: nowrap;
+}
+.dupe-btn:hover { border-color: var(--green); color: var(--green); background: var(--green-light); }
+
+/* TOTALS */
+.totals-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; }
+.stat-box {
+  background: var(--green-light); border-radius: var(--radius-sm);
+  padding: 12px 8px; text-align: center;
+  border: 1px solid var(--success-border);
+}
+.stat-val { font-size: 22px; font-weight: 700; color: var(--green); font-family: 'Playfair Display', serif; }
+.stat-label { font-size: 10px; font-weight: 600; color: var(--text-mid); letter-spacing: 0.08em; text-transform: uppercase; margin-top: 3px; }
+
+/* RATE ROW */
+.rate-row { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-top: 8px; }
+.rate-box { border-radius: var(--radius-sm); padding: 12px; text-align: center; }
+.rate-box.green-box { background: var(--green-light); border: 1px solid var(--success-border); }
+.rate-box.gold-box { background: var(--gold-light); border: 1px solid #ffe0a0; }
+.rate-val { font-size: 22px; font-weight: 700; font-family: 'Playfair Display', serif; }
+.rate-val.green { color: var(--green); }
+.rate-val.gold { color: var(--gold); }
+.rate-label { font-size: 10px; font-weight: 600; color: var(--text-mid); letter-spacing: 0.08em; text-transform: uppercase; margin-top: 3px; }
+
+/* BANNERS */
+.banner { border-radius: var(--radius-sm); padding: 12px 14px; margin-bottom: 12px; font-size: 13px; font-weight: 500; display: flex; align-items: flex-start; gap: 8px; }
+.banner.error { background: var(--error-bg); border: 1px solid var(--error-border); color: var(--error); }
+.banner.warning { background: var(--warning-bg); border: 1px solid var(--warning-border); color: var(--warning); }
+.banner.success { background: var(--success-bg); border: 1px solid var(--success-border); color: var(--success); }
+
+/* BUTTONS */
+.action-row { display: flex; gap: 10px; margin-top: 16px; }
+.btn {
+  flex: 1; padding: 16px; border: none; border-radius: var(--radius);
+  font-family: 'DM Sans', sans-serif; font-size: 15px; font-weight: 700;
+  cursor: pointer; transition: all 0.2s; letter-spacing: 0.02em;
+}
+.btn:active { transform: scale(0.97); }
+.btn-outline { background: white; border: 2px solid var(--border); color: var(--green); }
+.btn-outline:hover { border-color: var(--green); background: var(--green-light); }
+.btn-primary { background: var(--green); color: white; box-shadow: 0 3px 10px rgba(45,122,45,0.3); }
+.btn-primary:hover { background: var(--green-btn); }
+.btn-primary.success-state { background: #2a6a2a; }
+.btn-primary.error-state { background: #aa2222; }
+.btn-primary:disabled { opacity: 0.6; cursor: not-allowed; }
+.btn-secondary { background: var(--surface2); color: var(--text-mid); border: 2px solid var(--border); }
+
+/* SUMMARY */
+.summary-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 12px; }
+.summary-cell { background: var(--bg); border-radius: var(--radius-sm); padding: 10px 12px; }
+.summary-key { font-size: 10px; font-weight: 700; color: var(--text-dim); letter-spacing: 0.1em; text-transform: uppercase; }
+.summary-val { font-size: 14px; font-weight: 600; color: var(--text); margin-top: 3px; }
+
+/* LOG TABLE */
+.log-wrap { overflow-x: auto; border-radius: var(--radius-sm); border: 1px solid var(--border); }
+table { width: 100%; border-collapse: collapse; font-size: 12px; }
+th { padding: 10px 8px; color: var(--text-mid); text-align: left; border-bottom: 2px solid var(--border); font-weight: 700; font-size: 11px; letter-spacing: 0.06em; text-transform: uppercase; background: var(--bg); white-space: nowrap; }
+td { padding: 9px 8px; border-bottom: 1px solid var(--border); }
+tr:last-child td { border-bottom: none; }
+tr:nth-child(even) td { background: var(--bg); }
+
+/* SHIFT ID INDICATOR */
+.shift-id-box {
+  background: var(--blue-light); border: 1px solid #c0d0f0;
+  border-radius: var(--radius-sm); padding: 8px 12px;
+  font-size: 11px; color: var(--blue); margin-top: 8px;
+  display: flex; align-items: center; gap: 6px;
+}
 </style>
 </head>
 <body>
 
 <div class="topbar">
-  <div class="topbar-icon">⛳</div>
+  <div class="topbar-logo">⛳</div>
   <div>
-    <div class="topbar-title">GIRDIE GOLF</div>
-    <div class="topbar-sub">SCORECARD TRACKER</div>
+    <div class="topbar-title">Girdie Golf</div>
+    <div class="topbar-sub">Scorecard Tracker</div>
   </div>
   <div class="topbar-info" id="topbarInfo" style="display:none">
-    <div class="name" id="topbarName"></div>
-    <div class="detail" id="topbarDetail"></div>
+    <div class="topbar-name" id="topbarName"></div>
+    <div class="topbar-detail" id="topbarDetail"></div>
   </div>
 </div>
 
 <div class="save-bar">
   <div class="save-indicator">
     <div class="save-dot" id="localDot"></div>
-    <span id="localStatus" style="color:var(--text-dim)">LOCAL: NOT SAVED</span>
+    <span id="localStatus">Not saved</span>
   </div>
-  <div id="sheetsStatus" class="sheets-status">SHEETS: PENDING</div>
+  <span class="sheets-badge" id="sheetsBadge">Sheets: Pending</span>
 </div>
 
 <div class="tabs">
-  <button class="tab active" onclick="switchTab('entry')">📋 DATA ENTRY</button>
-  <button class="tab" onclick="switchTab('summary')">📊 SUMMARY</button>
+  <button class="tab active" onclick="switchTab('entry')">📋 Data Entry</button>
+  <button class="tab" onclick="switchTab('summary')">📊 Summary</button>
 </div>
 
 <div class="main">
@@ -250,8 +342,8 @@
   <!-- ENTRY TAB -->
   <div id="tabEntry">
 
-    <div class="section">
-      <div class="section-title">SHIFT INFO</div>
+    <div class="card">
+      <div class="section-title">Shift Info</div>
       <div class="row2">
         <div class="field">
           <label>Staff Name</label>
@@ -291,30 +383,45 @@
         <label>Donations Received ($) — optional</label>
         <input type="number" id="donations" min="0" step="0.01" placeholder="0.00" oninput="onHeaderChange()">
       </div>
+      <div class="shift-id-box" id="shiftIdBox" style="display:none">
+        🔑 Shift ID: <strong id="shiftIdLabel"></strong> — resubmitting will update existing row
+      </div>
     </div>
 
-    <div class="section">
-      <div class="section-title">GROUPS (<span id="groupCount">0</span> entered)</div>
+    <div class="card">
+      <div class="section-title">Groups (<span id="groupCount">0</span> entered)</div>
       <div id="groupsContainer"></div>
-      <button class="add-btn" onclick="addGroup()">+ Add Group</button>
+      <div class="group-actions">
+        <button class="add-btn" onclick="addGroup()">+ Add Group</button>
+        <button class="dupe-btn" onclick="duplicateLast()" title="Copy last group">⎘ Duplicate Last</button>
+      </div>
     </div>
 
-    <div class="section">
-      <div class="section-title">RUNNING TOTALS</div>
+    <div class="card">
+      <div class="section-title">Running Totals</div>
       <div class="totals-grid">
         <div class="stat-box"><div class="stat-val" id="tGolfers">0</div><div class="stat-label">Golfers</div></div>
         <div class="stat-box"><div class="stat-val" id="tPaying">0</div><div class="stat-label">Paying</div></div>
         <div class="stat-box"><div class="stat-val" id="tGreen">0</div><div class="stat-label">Green Hits</div></div>
         <div class="stat-box"><div class="stat-val" id="tCash">0</div><div class="stat-label"># Cash</div></div>
         <div class="stat-box"><div class="stat-val" id="tElec">0</div><div class="stat-label"># Electronic</div></div>
-        <div class="stat-box"><div class="stat-val" id="tRate">0%</div><div class="stat-label">Opt In %</div></div>
+        <div class="stat-box"><div class="stat-val" id="tRate">—</div><div class="stat-label">Opt In %</div></div>
+      </div>
+      <div class="rate-row">
+        <div class="rate-box green-box"><div class="rate-val green" id="tRevenue">$0</div><div class="rate-label">Est. Revenue</div></div>
+        <div class="rate-box gold-box"><div class="rate-val gold" id="tRewards">$0</div><div class="rate-label">Est. Rewards Out</div></div>
       </div>
     </div>
 
-    <div id="errorBanner" class="banner error" style="display:none"></div>
+    <div id="errorBanner" class="banner error" style="display:none">
+      <span>⚠</span><span id="errorMsg"></span>
+    </div>
+    <div id="validationBanner" class="banner warning" style="display:none">
+      <span>⚠</span><span id="validationMsg"></span>
+    </div>
 
     <div class="action-row">
-      <button class="btn btn-outline" onclick="downloadCSV()">⬇ Download CSV</button>
+      <button class="btn btn-outline" onclick="downloadCSV()">⬇ CSV</button>
       <button class="btn btn-primary" id="submitBtn" onclick="submitToSheets()">Submit to Sheets</button>
     </div>
 
@@ -322,15 +429,17 @@
 
   <!-- SUMMARY TAB -->
   <div id="tabSummary" style="display:none">
-    <div class="section">
-      <div class="section-title">SHIFT SUMMARY</div>
+    <div class="card">
+      <div class="section-title">Shift Summary</div>
       <div class="summary-grid" id="summaryInfo"></div>
-      <div class="totals-grid" style="margin-top:10px" id="summaryStats"></div>
+      <div class="totals-grid" id="summaryStats" style="margin-top:10px"></div>
       <div class="rate-row" id="summaryRates"></div>
-      <div id="summaryBanner" class="banner success" style="display:none;margin-top:10px">✓ Submitted to Google Sheets</div>
+      <div id="summaryBanner" class="banner success" style="display:none; margin-top:10px">
+        ✓ Submitted to Google Sheets successfully
+      </div>
     </div>
-    <div class="section">
-      <div class="section-title">GROUP LOG (<span id="summaryGroupCount">0</span>)</div>
+    <div class="card">
+      <div class="section-title">Group Log (<span id="summaryGroupCount">0</span>)</div>
       <div class="log-wrap">
         <table>
           <thead><tr><th>#</th><th>Time</th><th>Glf</th><th>Pay</th><th>Cash</th><th>Elec</th><th>Green</th><th>Notes</th></tr></thead>
@@ -339,7 +448,7 @@
       </div>
     </div>
     <div class="action-row">
-      <button class="btn btn-outline" onclick="downloadCSV()">⬇ Download CSV</button>
+      <button class="btn btn-outline" onclick="downloadCSV()">⬇ CSV</button>
       <button class="btn btn-secondary" onclick="newShift()">New Shift</button>
     </div>
   </div>
@@ -348,117 +457,96 @@
 
 <script>
 const APPS_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbwNyIZNDPrlKwSVjDCxtJUztcwKEwgNxi3cm1GTR8lqLmIWsFXyx5_Tnq604ICcxAs/exec";
-const STORAGE_KEY = "girdie_shift";
-const SUBMITTED_KEY = "girdie_submitted";
+const STORAGE_KEY = "girdie_shift_v2";
 
-// ── STATE ──────────────────────────────────────────────────
 let state = {
-  header: {
-    staffName: "", course: "", date: todayStr(), station: "",
-    startTime: "", endTime: "", donations: ""
-  },
+  header: { staffName:"", course:"", date:todayStr(), station:"", startTime:"", endTime:"", donations:"" },
   groups: [],
-  submitStatus: null, // null | saving | success | error
-  lastSaved: null,
   sheetsSubmitted: false,
-  pendingQueue: [],
+  lastSaved: null,
+  shiftId: null,
 };
-
-let autoSubmitTimer = null;
+let groupIdCounter = 0;
 let localSaveTimer = null;
+let autoSubmitTimer = null;
 
-function todayStr() {
-  return new Date().toISOString().split("T")[0];
+function todayStr() { return new Date().toISOString().split("T")[0]; }
+
+function buildShiftId(h) {
+  if (!h.staffName || !h.course || !h.date) return null;
+  return [h.staffName.trim().toLowerCase(), h.course.trim().toLowerCase(), h.date].join("_").replace(/\s+/g,"_");
 }
 
 // ── INIT ───────────────────────────────────────────────────
 window.onload = function() {
   loadFromLocal();
-  renderGroups();
-  updateTotals();
-  updateTopbar();
-  scheduleAutoSubmit();
-
-  // Set date default
-  if (!state.header.date) {
-    state.header.date = todayStr();
-    document.getElementById("date").value = state.header.date;
+  if (state.groups.length === 0) {
+    for (let i = 0; i < 10; i++) state.groups.push(newGroup());
   }
+  renderAll();
+  scheduleAutoSubmit();
 };
 
 // ── LOCAL STORAGE ──────────────────────────────────────────
 function saveToLocal() {
   try {
+    state.lastSaved = new Date().toISOString();
     localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
     setLocalStatus("saved");
-  } catch(e) {
-    setLocalStatus("error");
-  }
+  } catch(e) { setLocalStatus("error"); }
 }
 
 function loadFromLocal() {
   try {
     const raw = localStorage.getItem(STORAGE_KEY);
-    if (raw) {
-      const saved = JSON.parse(raw);
-      state = { ...state, ...saved };
-      // Restore header fields
-      const h = state.header;
-      document.getElementById("staffName").value = h.staffName || "";
-      document.getElementById("course").value = h.course || "";
-      document.getElementById("date").value = h.date || todayStr();
-      document.getElementById("station").value = h.station || "";
-      document.getElementById("startTime").value = h.startTime || "";
-      document.getElementById("endTime").value = h.endTime || "";
-      document.getElementById("donations").value = h.donations || "";
-      setLocalStatus("saved", state.lastSaved);
-      if (state.sheetsSubmitted) setSheetsStatus("ok", "SUBMITTED");
-      else if (state.pendingQueue && state.pendingQueue.length > 0) setSheetsStatus("pending", "PENDING");
-    } else {
-      // Fresh start — add initial 10 empty groups
-      for (let i = 0; i < 10; i++) state.groups.push(newGroup());
-    }
-  } catch(e) {
-    for (let i = 0; i < 10; i++) state.groups.push(newGroup());
-  }
+    if (!raw) return;
+    const saved = JSON.parse(raw);
+    state = { ...state, ...saved };
+    const h = state.header;
+    document.getElementById("staffName").value = h.staffName || "";
+    document.getElementById("course").value = h.course || "";
+    document.getElementById("date").value = h.date || todayStr();
+    document.getElementById("station").value = h.station || "";
+    document.getElementById("startTime").value = h.startTime || "";
+    document.getElementById("endTime").value = h.endTime || "";
+    document.getElementById("donations").value = h.donations || "";
+    if (state.lastSaved) setLocalStatus("saved");
+    if (state.sheetsSubmitted) setSheetsStatus("ok", "Submitted ✓");
+  } catch(e) {}
 }
 
 function debounceSave() {
-  clearTimeout(localSaveTimer);
-  localSaveTimer = setTimeout(() => {
-    state.lastSaved = new Date().toISOString();
-    saveToLocal();
-  }, 800);
   setLocalStatus("saving");
+  clearTimeout(localSaveTimer);
+  localSaveTimer = setTimeout(saveToLocal, 600);
 }
 
-function setLocalStatus(status, ts) {
+function setLocalStatus(s) {
   const dot = document.getElementById("localDot");
   const lbl = document.getElementById("localStatus");
-  dot.className = "save-dot " + status;
-  if (status === "saved") {
-    const t = ts ? new Date(ts) : new Date();
+  dot.className = "save-dot " + s;
+  if (s === "saved") {
+    const t = state.lastSaved ? new Date(state.lastSaved) : new Date();
     lbl.style.color = "var(--success)";
-    lbl.textContent = "LOCAL: SAVED " + t.toLocaleTimeString([], {hour:'2-digit',minute:'2-digit'});
-  } else if (status === "saving") {
+    lbl.textContent = "Saved " + t.toLocaleTimeString([], {hour:"2-digit",minute:"2-digit"});
+  } else if (s === "saving") {
     lbl.style.color = "var(--gold)";
-    lbl.textContent = "LOCAL: SAVING...";
+    lbl.textContent = "Saving...";
   } else {
     lbl.style.color = "var(--error)";
-    lbl.textContent = "LOCAL: ERROR";
+    lbl.textContent = "Save error";
   }
 }
 
 function setSheetsStatus(type, msg) {
-  const el = document.getElementById("sheetsStatus");
-  el.className = "sheets-status " + type;
-  el.textContent = "SHEETS: " + msg;
+  const el = document.getElementById("sheetsBadge");
+  el.className = "sheets-badge " + type;
+  el.textContent = "Sheets: " + msg;
 }
 
 // ── GROUPS ─────────────────────────────────────────────────
-let groupIdCounter = 0;
 function newGroup() {
-  return { id: groupIdCounter++, time: "", golfers: null, paying: null, cash: null, electronic: null, hitGreen: null, notes: "" };
+  return { id: groupIdCounter++, time:"", golfers:null, paying:null, cash:null, electronic:null, hitGreen:null, notes:"" };
 }
 
 function addGroup() {
@@ -466,8 +554,19 @@ function addGroup() {
   renderGroups();
   updateTotals();
   debounceSave();
-  // Scroll to bottom
-  setTimeout(() => window.scrollTo(0, document.body.scrollHeight), 50);
+  setTimeout(() => window.scrollTo({top: document.body.scrollHeight, behavior:"smooth"}), 50);
+}
+
+function duplicateLast() {
+  const filled = state.groups.filter(g => g.golfers !== null || g.paying !== null || g.cash !== null || g.electronic !== null);
+  if (filled.length === 0) { showError("No groups to duplicate yet."); return; }
+  const last = filled[filled.length - 1];
+  const dupe = { ...last, id: groupIdCounter++, time: "", notes: "" };
+  state.groups.push(dupe);
+  renderGroups();
+  updateTotals();
+  debounceSave();
+  setTimeout(() => window.scrollTo({top: document.body.scrollHeight, behavior:"smooth"}), 50);
 }
 
 function removeGroup(id) {
@@ -482,97 +581,137 @@ function setGroupField(id, field, val) {
   if (!g) return;
   g[field] = val;
   updateTotals();
-  updateGroupCard(id);
+  refreshGroupCard(id);
   debounceSave();
 }
 
-function toggleSelector(id, field, val, color) {
+function toggleSel(id, field, val, color) {
   const g = state.groups.find(g => g.id === id);
   if (!g) return;
   g[field] = g[field] === val ? null : val;
-  // Update button visuals
   const btns = document.querySelectorAll(`[data-gid="${id}"][data-field="${field}"]`);
   btns.forEach(btn => {
     const n = parseInt(btn.dataset.val);
     btn.className = `sel-btn sel-${color}` + (g[field] === n ? " active" : "");
   });
   updateTotals();
-  updateGroupCardBorder(id);
+  refreshGroupCard(id);
+  validateGroup(id);
   debounceSave();
 }
 
-function updateGroupCardBorder(id) {
+function validateGroup(id) {
+  const g = state.groups.find(g => g.id === id);
+  if (!g) return;
+  const warn = document.getElementById("warn_" + id);
+  const card = document.getElementById("card_" + id);
+  if (!warn || !card) return;
+  const msgs = [];
+  if (g.paying !== null && g.golfers !== null && g.paying > g.golfers)
+    msgs.push("# Paying can't exceed # Golfers");
+  if (g.cash !== null && g.electronic !== null && g.paying !== null && (g.cash + g.electronic) > g.paying)
+    msgs.push("Cash + Electronic can't exceed # Paying");
+  if (msgs.length > 0) {
+    warn.textContent = "⚠ " + msgs.join(" · ");
+    warn.classList.add("show");
+    card.classList.add("has-warning");
+  } else {
+    warn.classList.remove("show");
+    card.classList.remove("has-warning");
+  }
+}
+
+function refreshGroupCard(id) {
   const g = state.groups.find(g => g.id === id);
   if (!g) return;
   const card = document.getElementById("card_" + id);
   if (!card) return;
   const filled = g.golfers !== null || g.paying !== null || g.cash !== null || g.electronic !== null;
-  card.className = "group-card" + (filled ? " filled" : "");
-}
-
-function updateGroupCard(id) {
-  updateGroupCardBorder(id);
+  card.classList.toggle("filled", filled);
 }
 
 function renderGroups() {
   const container = document.getElementById("groupsContainer");
   container.innerHTML = "";
-  const filled = state.groups.filter(g => g.golfers !== null || g.paying !== null || g.cash !== null || g.electronic !== null);
+  const filled = state.groups.filter(g => g.golfers!==null||g.paying!==null||g.cash!==null||g.electronic!==null);
   document.getElementById("groupCount").textContent = filled.length;
 
   state.groups.forEach((g, i) => {
-    const isFilled = g.golfers !== null || g.paying !== null || g.cash !== null || g.electronic !== null;
+    const isFilled = g.golfers!==null||g.paying!==null||g.cash!==null||g.electronic!==null;
+    const hasWarn = (g.paying!==null && g.golfers!==null && g.paying > g.golfers) ||
+      (g.cash!==null && g.electronic!==null && g.paying!==null && (g.cash+g.electronic) > g.paying);
+
     const card = document.createElement("div");
-    card.className = "group-card" + (isFilled ? " filled" : "");
+    card.className = "group-card" + (isFilled?" filled":"") + (hasWarn?" has-warning":"");
     card.id = "card_" + g.id;
 
     card.innerHTML = `
       <div class="group-header">
-        <span class="group-num">#${i+1}</span>
-        <input class="group-time" type="time" value="${g.time || ""}" 
+        <div class="group-num">${i+1}</div>
+        <input class="group-time" type="time" value="${g.time||""}"
           onchange="setGroupField(${g.id},'time',this.value)" placeholder="Time">
         <button class="remove-btn" onclick="removeGroup(${g.id})">×</button>
       </div>
+      <div class="group-warning${hasWarn?' show':''}" id="warn_${g.id}"></div>
       <div class="sel-row">
-        ${selGroup(g.id, "golfers", "# GOLFERS", "green", g.golfers)}
-        ${selGroup(g.id, "paying", "# PAYING", "green", g.paying)}
+        ${selGroup(g.id,"golfers","# Golfers","green",g.golfers)}
+        ${selGroup(g.id,"paying","# Paying","green",g.paying)}
       </div>
       <div class="sel-row">
-        ${selGroup(g.id, "cash", "# PAID CASH", "gold", g.cash)}
-        ${selGroup(g.id, "electronic", "# PAID ELECTRONIC", "blue", g.electronic)}
+        ${selGroup(g.id,"cash","# Paid Cash","gold",g.cash)}
+        ${selGroup(g.id,"electronic","# Paid Electronic","blue",g.electronic)}
       </div>
       <div class="notes-row">
-        ${selGroup(g.id, "hitGreen", "# HIT THE GREEN", "purple", g.hitGreen)}
-        <div class="notes-field">
-          <div class="sel-label">NOTES</div>
-          <input class="notes-input" type="text" value="${(g.notes||"").replace(/"/g,'&quot;')}" 
+        ${selGroup(g.id,"hitGreen","# Hit the Green","purple",g.hitGreen)}
+        <div class="sel-group">
+          <div class="sel-label">Notes</div>
+          <input class="notes-input" type="text" value="${(g.notes||"").replace(/"/g,'&quot;')}"
             placeholder="Optional" oninput="setGroupField(${g.id},'notes',this.value)">
         </div>
       </div>
     `;
     container.appendChild(card);
+    if (hasWarn) {
+      const msgs = [];
+      if (g.paying > g.golfers) msgs.push("# Paying can't exceed # Golfers");
+      if ((g.cash + g.electronic) > g.paying) msgs.push("Cash + Electronic can't exceed # Paying");
+      document.getElementById("warn_" + g.id).textContent = "⚠ " + msgs.join(" · ");
+    }
   });
 }
 
 function selGroup(gid, field, label, color, current) {
   const btns = [0,1,2,3,4].map(n => {
     const active = current === n ? " active" : "";
-    return `<button class="sel-btn sel-${color}${active}" 
+    return `<button class="sel-btn sel-${color}${active}"
       data-gid="${gid}" data-field="${field}" data-val="${n}"
-      onclick="toggleSelector(${gid},'${field}',${n},'${color}')">${n}</button>`;
+      onclick="toggleSel(${gid},'${field}',${n},'${color}')">${n}</button>`;
   }).join("");
   return `<div class="sel-group"><div class="sel-label">${label}</div><div class="sel-btns">${btns}</div></div>`;
 }
 
-// ── HEADER CHANGES ─────────────────────────────────────────
+// ── HEADER ─────────────────────────────────────────────────
 function onHeaderChange() {
-  state.header.staffName = document.getElementById("staffName").value;
-  state.header.course = document.getElementById("course").value;
-  state.header.date = document.getElementById("date").value;
-  state.header.station = document.getElementById("station").value;
-  state.header.startTime = document.getElementById("startTime").value;
-  state.header.endTime = document.getElementById("endTime").value;
-  state.header.donations = document.getElementById("donations").value;
+  const h = state.header;
+  h.staffName = document.getElementById("staffName").value;
+  h.course = document.getElementById("course").value;
+  h.date = document.getElementById("date").value;
+  h.station = document.getElementById("station").value;
+  h.startTime = document.getElementById("startTime").value;
+  h.endTime = document.getElementById("endTime").value;
+  h.donations = document.getElementById("donations").value;
+
+  // Update shift ID
+  state.shiftId = buildShiftId(h);
+  const idBox = document.getElementById("shiftIdBox");
+  const idLabel = document.getElementById("shiftIdLabel");
+  if (state.shiftId) {
+    idBox.style.display = "flex";
+    idLabel.textContent = state.shiftId;
+  } else {
+    idBox.style.display = "none";
+  }
+
   updateTopbar();
   debounceSave();
 }
@@ -583,7 +722,7 @@ function updateTopbar() {
   if (h.staffName || h.course) {
     info.style.display = "block";
     document.getElementById("topbarName").textContent = h.staffName || "—";
-    document.getElementById("topbarDetail").textContent = (h.course || "—") + (h.station ? " · Hole " + h.station : "");
+    document.getElementById("topbarDetail").textContent = (h.course||"—") + (h.station?" · Hole "+h.station:"");
   } else {
     info.style.display = "none";
   }
@@ -597,93 +736,101 @@ function computeTotals() {
     cash: acc.cash + (g.cash ?? 0),
     electronic: acc.electronic + (g.electronic ?? 0),
     greenHits: acc.greenHits + (g.hitGreen ?? 0),
-  }), { golfers: 0, paying: 0, cash: 0, electronic: 0, greenHits: 0 });
+  }), { golfers:0, paying:0, cash:0, electronic:0, greenHits:0 });
 }
 
 function updateTotals() {
   const t = computeTotals();
-  const rate = t.golfers > 0 ? Math.round((t.paying / t.golfers) * 100) : 0;
+  const rate = t.golfers > 0 ? Math.round((t.paying / t.golfers) * 100) : null;
+  const rev = (t.cash + t.electronic) * 20 + (parseFloat(state.header.donations) || 0);
+  const rewards = t.greenHits * 40;
+
   document.getElementById("tGolfers").textContent = t.golfers;
   document.getElementById("tPaying").textContent = t.paying;
   document.getElementById("tGreen").textContent = t.greenHits;
   document.getElementById("tCash").textContent = t.cash;
   document.getElementById("tElec").textContent = t.electronic;
-  document.getElementById("tRate").textContent = rate + "%";
-  const filled = state.groups.filter(g => g.golfers !== null || g.paying !== null || g.cash !== null || g.electronic !== null);
+  document.getElementById("tRate").textContent = rate !== null ? rate + "%" : "—";
+  document.getElementById("tRevenue").textContent = "$" + rev.toFixed(2);
+  document.getElementById("tRewards").textContent = "-$" + rewards.toFixed(2);
+
+  const filled = state.groups.filter(g => g.golfers!==null||g.paying!==null||g.cash!==null||g.electronic!==null);
   document.getElementById("groupCount").textContent = filled.length;
 }
 
-// ── AUTO-SUBMIT ────────────────────────────────────────────
-function scheduleAutoSubmit() {
-  clearInterval(autoSubmitTimer);
-  autoSubmitTimer = setInterval(backgroundSubmit, 5 * 60 * 1000); // every 5 min
+function renderAll() {
+  renderGroups();
+  updateTotals();
+  updateTopbar();
+  onHeaderChange();
 }
 
-function backgroundSubmit() {
-  if (state.sheetsSubmitted) return;
-  const h = state.header;
-  if (!h.staffName || !h.course || !h.date) return; // not enough data yet
-  sendToSheets(true);
+// ── VALIDATION ─────────────────────────────────────────────
+function runValidation() {
+  const issues = [];
+  state.groups.forEach((g, i) => {
+    if (g.paying !== null && g.golfers !== null && g.paying > g.golfers)
+      issues.push(`Group ${i+1}: Paying (${g.paying}) > Golfers (${g.golfers})`);
+    if (g.cash !== null && g.electronic !== null && g.paying !== null && (g.cash + g.electronic) > g.paying)
+      issues.push(`Group ${i+1}: Cash+Electronic (${g.cash+g.electronic}) > Paying (${g.paying})`);
+  });
+  const vBanner = document.getElementById("validationBanner");
+  const vMsg = document.getElementById("validationMsg");
+  if (issues.length > 0) {
+    vMsg.textContent = issues.join(" · ");
+    vBanner.style.display = "flex";
+    return false;
+  }
+  vBanner.style.display = "none";
+  return true;
 }
 
 // ── SUBMIT ─────────────────────────────────────────────────
-function buildPayload() {
+function buildPayload(isBackground) {
   const t = computeTotals();
   const h = state.header;
   const notes = state.groups
     .filter(g => g.notes && g.notes.trim())
-    .map((g, i) => "Grp " + (i+1) + ": " + g.notes.trim())
+    .map((g, i) => "Grp "+(i+1)+": "+g.notes.trim())
     .join(" | ");
   return {
-    staffName: h.staffName,
-    course: h.course,
-    date: h.date,
-    station: h.station,
-    startTime: h.startTime,
-    endTime: h.endTime,
-    golfers: t.golfers,
-    paying: t.paying,
-    cash: t.cash,
-    electronic: t.electronic,
-    greenHits: t.greenHits,
+    staffName: h.staffName, course: h.course, date: h.date,
+    station: h.station, startTime: h.startTime, endTime: h.endTime,
+    golfers: t.golfers, paying: t.paying, cash: t.cash,
+    electronic: t.electronic, greenHits: t.greenHits,
     donations: parseFloat(h.donations) || 0,
-    holeInOne: 0,
-    notes: notes,
-    autoSave: false,
+    holeInOne: 0, notes: notes,
+    shiftId: state.shiftId || "",
+    isBackground: isBackground || false,
   };
 }
 
-function sendToSheets(isBackground) {
-  const payload = buildPayload();
+function sendToSheets(isBackground, onSuccess, onError) {
+  const payload = buildPayload(isBackground);
   const encoded = encodeURIComponent(JSON.stringify(payload));
   const url = APPS_SCRIPT_URL + "?data=" + encoded;
 
-  if (!isBackground) {
-    document.getElementById("submitBtn").disabled = true;
-    document.getElementById("submitBtn").textContent = "⏳ Saving...";
-    setSheetsStatus("pending", "SUBMITTING...");
-  }
+  setSheetsStatus("pending", "Submitting...");
 
-  // Use image ping as most CORS-friendly approach
+  // Try image ping (works around CORS in most browsers)
   const img = new Image();
-  img.onload = img.onerror = function() {
-    if (!isBackground) {
-      state.sheetsSubmitted = true;
-      saveToLocal();
-      setSheetsStatus("ok", "SUBMITTED ✓");
-      document.getElementById("submitBtn").textContent = "✓ Saved to Sheets!";
-      document.getElementById("submitBtn").className = "btn btn-primary success";
-      document.getElementById("submitBtn").disabled = false;
-      document.getElementById("summaryBanner").style.display = "block";
-      switchTab("summary");
-    } else {
-      setSheetsStatus("ok", "AUTO-SAVED ✓");
-    }
+  let resolved = false;
+  const resolve = (success) => {
+    if (resolved) return;
+    resolved = true;
+    if (success) { onSuccess && onSuccess(); }
+    else { onError && onError(); }
   };
+  img.onload = () => resolve(true);
+  img.onerror = () => {
+    // onerror doesn't necessarily mean failure for Apps Script
+    // Try fetch no-cors as backup signal
+    fetch(url, { method:"GET", mode:"no-cors" })
+      .then(() => resolve(true))
+      .catch(() => resolve(false));
+  };
+  setTimeout(() => resolve(true), 8000); // assume success after 8s
   img.src = url;
-
-  // Also try fetch no-cors as belt-and-suspenders
-  fetch(url, { method: "GET", mode: "no-cors" }).catch(() => {});
 }
 
 function submitToSheets() {
@@ -692,8 +839,45 @@ function submitToSheets() {
     showError("Please fill in Staff Name, Course, and Date before submitting.");
     return;
   }
+  if (!runValidation()) return;
   hideError();
-  sendToSheets(false);
+
+  const btn = document.getElementById("submitBtn");
+  btn.disabled = true;
+  btn.textContent = "⏳ Saving...";
+  btn.className = "btn btn-primary";
+
+  sendToSheets(false,
+    () => {
+      state.sheetsSubmitted = true;
+      saveToLocal();
+      setSheetsStatus("ok", "Submitted ✓");
+      btn.textContent = "✓ Saved to Sheets!";
+      btn.className = "btn btn-primary success-state";
+      btn.disabled = false;
+      document.getElementById("summaryBanner").style.display = "flex";
+      switchTab("summary");
+    },
+    () => {
+      setSheetsStatus("fail", "Error");
+      btn.textContent = "✗ Retry";
+      btn.className = "btn btn-primary error-state";
+      btn.disabled = false;
+      showError("Could not reach Sheets. Try again or use CSV download.");
+    }
+  );
+}
+
+function scheduleAutoSubmit() {
+  clearInterval(autoSubmitTimer);
+  autoSubmitTimer = setInterval(() => {
+    const h = state.header;
+    if (!h.staffName || !h.course || !h.date) return;
+    sendToSheets(true,
+      () => setSheetsStatus("ok", "Auto-saved ✓"),
+      () => {}
+    );
+  }, 5 * 60 * 1000);
 }
 
 // ── TABS ───────────────────────────────────────────────────
@@ -701,72 +885,61 @@ function switchTab(tab) {
   document.getElementById("tabEntry").style.display = tab === "entry" ? "block" : "none";
   document.getElementById("tabSummary").style.display = tab === "summary" ? "block" : "none";
   document.querySelectorAll(".tab").forEach((t, i) => {
-    t.className = "tab" + ((i === 0 && tab === "entry") || (i === 1 && tab === "summary") ? " active" : "");
+    t.className = "tab" + ((i===0&&tab==="entry")||(i===1&&tab==="summary") ? " active" : "");
   });
   if (tab === "summary") renderSummary();
 }
 
-// ── SUMMARY ────────────────────────────────────────────────
 function renderSummary() {
   const h = state.header;
   const t = computeTotals();
-  const rate = t.golfers > 0 ? Math.round((t.paying / t.golfers) * 100) : 0;
-  const rev = (t.cash + t.electronic) * 20 + (parseFloat(h.donations) || 0);
-  const filled = state.groups.filter(g => g.golfers !== null || g.paying !== null || g.cash !== null || g.electronic !== null);
+  const rate = t.golfers > 0 ? Math.round((t.paying/t.golfers)*100) : 0;
+  const rev = (t.cash + t.electronic) * 20 + (parseFloat(h.donations)||0);
+  const filled = state.groups.filter(g => g.golfers!==null||g.paying!==null||g.cash!==null||g.electronic!==null);
 
   document.getElementById("summaryInfo").innerHTML = [
-    ["Staff", h.staffName || "—"], ["Course", h.course || "—"],
-    ["Date", h.date || "—"], ["Station", h.station || "—"],
-    ["Start", h.startTime || "—"], ["End", h.endTime || "—"],
+    ["Staff", h.staffName||"—"], ["Course", h.course||"—"],
+    ["Date", h.date||"—"], ["Station", h.station||"—"],
+    ["Start", h.startTime||"—"], ["End", h.endTime||"—"],
   ].map(([k,v]) => `<div class="summary-cell"><div class="summary-key">${k}</div><div class="summary-val">${v}</div></div>`).join("");
 
   document.getElementById("summaryStats").innerHTML = [
     ["Groups", filled.length], ["Golfers", t.golfers], ["Paying", t.paying],
     ["# Cash", t.cash], ["# Electronic", t.electronic], ["Green Hits", t.greenHits],
-  ].map(([l,v]) => `<div class="stat-box large"><div class="stat-val">${v}</div><div class="stat-label">${l}</div></div>`).join("");
+  ].map(([l,v]) => `<div class="stat-box"><div class="stat-val">${v}</div><div class="stat-label">${l}</div></div>`).join("");
 
   document.getElementById("summaryRates").innerHTML = `
-    <div class="rate-box"><div class="rate-val green">${rate}%</div><div class="rate-label">Opt In Rate</div></div>
-    <div class="rate-box"><div class="rate-val gold">$${rev.toFixed(2)}</div><div class="rate-label">Est. Revenue</div></div>
+    <div class="rate-box green-box"><div class="rate-val green">${rate}%</div><div class="rate-label">Opt In Rate</div></div>
+    <div class="rate-box gold-box"><div class="rate-val gold">$${rev.toFixed(2)}</div><div class="rate-label">Est. Revenue</div></div>
   `;
-
   document.getElementById("summaryGroupCount").textContent = filled.length;
-  const tbody = document.getElementById("summaryTable");
-  tbody.innerHTML = filled.map((g, i) => `
+  document.getElementById("summaryTable").innerHTML = filled.map((g,i) => `
     <tr>
-      <td style="color:var(--text-dim)">${i+1}</td>
-      <td style="white-space:nowrap">${g.time || "—"}</td>
-      <td>${g.golfers ?? "—"}</td>
-      <td>${g.paying ?? "—"}</td>
-      <td>${g.cash ?? "—"}</td>
-      <td>${g.electronic ?? "—"}</td>
-      <td>${g.hitGreen ?? "—"}</td>
-      <td style="color:var(--text-dim);font-size:10px">${g.notes || ""}</td>
-    </tr>
-  `).join("");
+      <td style="color:var(--text-dim);font-weight:600">${i+1}</td>
+      <td>${g.time||"—"}</td><td>${g.golfers??'—'}</td><td>${g.paying??'—'}</td>
+      <td>${g.cash??'—'}</td><td>${g.electronic??'—'}</td><td>${g.hitGreen??'—'}</td>
+      <td style="color:var(--text-mid)">${g.notes||""}</td>
+    </tr>`).join("");
 
-  if (state.sheetsSubmitted) {
-    document.getElementById("summaryBanner").style.display = "block";
-  }
+  if (state.sheetsSubmitted) document.getElementById("summaryBanner").style.display = "flex";
 }
 
-// ── CSV DOWNLOAD ───────────────────────────────────────────
+// ── CSV ────────────────────────────────────────────────────
 function downloadCSV() {
   const h = state.header;
   const t = computeTotals();
-  const filled = state.groups.filter(g => g.golfers !== null || g.paying !== null || g.cash !== null || g.electronic !== null);
-  const esc = v => '"' + String(v ?? "").replace(/"/g,'""') + '"';
+  const filled = state.groups.filter(g => g.golfers!==null||g.paying!==null||g.cash!==null||g.electronic!==null);
+  const esc = v => '"' + String(v??'').replace(/"/g,'""') + '"';
   const rows = [
-    ["Staff Name", h.staffName], ["Course", h.course], ["Date", h.date],
-    ["Station", h.station], ["Start", h.startTime], ["End", h.endTime],
-    ["Donations", h.donations || 0], [],
+    ["Staff Name",h.staffName],["Course",h.course],["Date",h.date],
+    ["Station",h.station],["Start",h.startTime],["End",h.endTime],
+    ["Donations",h.donations||0],[],
     ["#","Time","Golfers","Paying","Cash","Electronic","Hit Green","Notes"],
-    ...filled.map((g,i) => [i+1, g.time, g.golfers??'', g.paying??'', g.cash??'', g.electronic??'', g.hitGreen??'', g.notes]),
-    [],
-    ["TOTALS","",t.golfers,t.paying,t.cash,t.electronic,t.greenHits,""]
+    ...filled.map((g,i) => [i+1,g.time,g.golfers??'',g.paying??'',g.cash??'',g.electronic??'',g.hitGreen??'',g.notes]),
+    [],["TOTALS","",t.golfers,t.paying,t.cash,t.electronic,t.greenHits,""]
   ];
   const csv = rows.map(r => r.map(esc).join(",")).join("\n");
-  const blob = new Blob([csv], {type:"text/csv"});
+  const blob = new Blob([csv],{type:"text/csv"});
   const url = URL.createObjectURL(blob);
   const a = document.createElement("a");
   a.href = url;
@@ -779,40 +952,34 @@ function downloadCSV() {
 function newShift() {
   if (!confirm("Start a new shift? This will clear all current data.")) return;
   localStorage.removeItem(STORAGE_KEY);
+  groupIdCounter = 0;
   state = {
-    header: { staffName: "", course: "", date: todayStr(), station: "", startTime: "", endTime: "", donations: "" },
+    header: {staffName:"",course:"",date:todayStr(),station:"",startTime:"",endTime:"",donations:""},
     groups: [],
-    submitStatus: null, lastSaved: null, sheetsSubmitted: false, pendingQueue: [],
+    sheetsSubmitted: false, lastSaved: null, shiftId: null,
   };
   for (let i = 0; i < 10; i++) state.groups.push(newGroup());
-  document.getElementById("staffName").value = "";
+  ["staffName","station","startTime","endTime","donations"].forEach(id => document.getElementById(id).value = "");
   document.getElementById("course").value = "";
   document.getElementById("date").value = todayStr();
-  document.getElementById("station").value = "";
-  document.getElementById("startTime").value = "";
-  document.getElementById("endTime").value = "";
-  document.getElementById("donations").value = "";
-  document.getElementById("submitBtn").textContent = "Submit to Sheets";
-  document.getElementById("submitBtn").className = "btn btn-primary";
-  document.getElementById("submitBtn").disabled = false;
+  const btn = document.getElementById("submitBtn");
+  btn.textContent = "Submit to Sheets";
+  btn.className = "btn btn-primary";
+  btn.disabled = false;
   document.getElementById("summaryBanner").style.display = "none";
-  setSheetsStatus("", "PENDING");
+  document.getElementById("shiftIdBox").style.display = "none";
+  setSheetsStatus("", "Pending");
   setLocalStatus("saving");
-  renderGroups();
-  updateTotals();
-  updateTopbar();
+  renderAll();
   switchTab("entry");
 }
 
 // ── UTILS ──────────────────────────────────────────────────
 function showError(msg) {
-  const b = document.getElementById("errorBanner");
-  b.textContent = "⚠ " + msg;
-  b.style.display = "block";
+  document.getElementById("errorMsg").textContent = msg;
+  document.getElementById("errorBanner").style.display = "flex";
 }
-function hideError() {
-  document.getElementById("errorBanner").style.display = "none";
-}
+function hideError() { document.getElementById("errorBanner").style.display = "none"; }
 </script>
 </body>
 </html>
