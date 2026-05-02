@@ -1,0 +1,930 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<title>Girdie Golf Tracker</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=Playfair+Display:wght@700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #0a1a0a;
+    --surface: #121f12;
+    --surface2: #1a2f1a;
+    --border: #2a4a2a;
+    --green: #4a9a4a;
+    --green-light: #7dd87d;
+    --green-dim: #3a7a3a;
+    --gold: #c8a84b;
+    --blue: #4a7aaa;
+    --purple: #8a4a9a;
+    --text: #e8f0e8;
+    --text-dim: #6a8a6a;
+    --error: #ff6b6b;
+    --error-bg: #2a1010;
+    --success: #4adf7a;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+  html, body { height: 100%; background: var(--bg); color: var(--text); font-family: 'DM Mono', monospace; font-size: 14px; }
+  
+  /* TOP BAR */
+  .topbar {
+    background: linear-gradient(135deg, var(--surface2) 0%, var(--surface) 100%);
+    border-bottom: 2px solid var(--border);
+    padding: 14px 16px;
+    display: flex; align-items: center; gap: 12px;
+    position: sticky; top: 0; z-index: 100;
+  }
+  .topbar-icon {
+    width: 36px; height: 36px; background: var(--green);
+    border-radius: 50%; display: flex; align-items: center;
+    justify-content: center; font-size: 18px;
+    box-shadow: 0 2px 12px rgba(74,154,74,0.5);
+    flex-shrink: 0;
+  }
+  .topbar-title { font-family: 'Playfair Display', serif; font-size: 16px; color: var(--green-light); letter-spacing: 0.05em; }
+  .topbar-sub { font-size: 9px; color: var(--text-dim); letter-spacing: 0.15em; margin-top: 1px; }
+  .topbar-info { margin-left: auto; text-align: right; font-size: 11px; line-height: 1.5; }
+  .topbar-info .name { color: var(--green-light); font-weight: 500; }
+  .topbar-info .detail { color: var(--text-dim); }
+
+  /* SAVE STATUS BAR */
+  .save-bar {
+    background: var(--surface);
+    border-bottom: 1px solid var(--border);
+    padding: 6px 16px;
+    display: flex; align-items: center; justify-content: space-between;
+    font-size: 10px; letter-spacing: 0.08em;
+  }
+  .save-indicator { display: flex; align-items: center; gap: 6px; }
+  .save-dot { width: 6px; height: 6px; border-radius: 50%; background: var(--text-dim); transition: background 0.3s; }
+  .save-dot.saved { background: var(--success); }
+  .save-dot.saving { background: var(--gold); animation: pulse 1s infinite; }
+  .save-dot.error { background: var(--error); }
+  @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:0.3} }
+  .sheets-status { color: var(--text-dim); }
+  .sheets-status.ok { color: var(--success); }
+  .sheets-status.pending { color: var(--gold); }
+  .sheets-status.fail { color: var(--error); }
+
+  /* TABS */
+  .tabs { display: flex; border-bottom: 1px solid var(--border); }
+  .tab {
+    flex: 1; padding: 12px; background: transparent; border: none;
+    border-bottom: 2px solid transparent; color: var(--text-dim);
+    font-family: 'DM Mono', monospace; font-size: 11px;
+    letter-spacing: 0.1em; cursor: pointer; text-transform: uppercase;
+    transition: all 0.2s;
+  }
+  .tab.active { background: var(--surface); border-bottom-color: var(--green); color: var(--green-light); }
+
+  /* MAIN CONTENT */
+  .main { padding: 16px; max-width: 560px; margin: 0 auto; padding-bottom: 40px; }
+
+  /* SECTIONS */
+  .section { margin-bottom: 20px; }
+  .section-title {
+    font-size: 9px; letter-spacing: 0.2em; color: var(--green);
+    text-transform: uppercase; margin-bottom: 10px;
+    padding-bottom: 6px; border-bottom: 1px solid var(--surface2);
+  }
+
+  /* FORM FIELDS */
+  .row2 { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 10px; }
+  .field label { display: block; font-size: 9px; color: var(--text-dim); letter-spacing: 0.1em; text-transform: uppercase; margin-bottom: 4px; }
+  .field input, .field select {
+    width: 100%; background: var(--bg); border: 1px solid var(--border);
+    border-radius: 6px; color: var(--text); padding: 9px 10px;
+    font-family: 'DM Mono', monospace; font-size: 13px; outline: none;
+    transition: border-color 0.2s;
+  }
+  .field input:focus, .field select:focus { border-color: var(--green); }
+  .field select option { background: var(--surface); }
+
+  /* GROUP CARDS */
+  .group-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 10px; padding: 12px; margin-bottom: 8px;
+    transition: border-color 0.2s;
+  }
+  .group-card.filled { border-color: var(--green-dim); }
+  .group-header { display: flex; align-items: center; gap: 8px; margin-bottom: 10px; }
+  .group-num { font-size: 11px; color: var(--green); font-weight: 500; min-width: 28px; }
+  .group-time {
+    flex: 1; background: var(--bg); border: 1px solid var(--border);
+    border-radius: 6px; color: var(--text); padding: 8px 10px;
+    font-family: 'DM Mono', monospace; font-size: 13px; outline: none;
+  }
+  .group-time:focus { border-color: var(--green); }
+  .remove-btn {
+    background: none; border: none; color: var(--border);
+    cursor: pointer; font-size: 20px; line-height: 1; padding: 0 4px;
+    transition: color 0.2s;
+  }
+  .remove-btn:hover { color: var(--error); }
+
+  /* SELECTOR ROW */
+  .sel-row { display: flex; gap: 10px; margin-bottom: 10px; }
+  .sel-group { flex: 1; }
+  .sel-label { font-size: 9px; color: var(--text-dim); letter-spacing: 0.08em; text-transform: uppercase; margin-bottom: 5px; }
+  .sel-btns { display: flex; gap: 3px; }
+  .sel-btn {
+    flex: 1; height: 42px; background: var(--bg);
+    border: 2px solid var(--border); border-radius: 6px;
+    color: var(--text-dim); font-size: 16px; font-family: 'DM Mono', monospace;
+    cursor: pointer; transition: all 0.1s; padding: 0;
+  }
+  .sel-btn:active { transform: scale(0.92); }
+  .sel-btn.sel-green.active { background: var(--green); border-color: var(--green); color: #fff; font-weight: 500; }
+  .sel-btn.sel-gold.active { background: var(--gold); border-color: var(--gold); color: #000; font-weight: 500; }
+  .sel-btn.sel-blue.active { background: var(--blue); border-color: var(--blue); color: #fff; font-weight: 500; }
+  .sel-btn.sel-purple.active { background: var(--purple); border-color: var(--purple); color: #fff; font-weight: 500; }
+
+  /* NOTES */
+  .notes-row { display: flex; gap: 10px; align-items: flex-end; }
+  .notes-field { flex: 1; }
+  .notes-input {
+    width: 100%; background: var(--bg); border: 1px solid var(--border);
+    border-radius: 6px; color: var(--text); padding: 9px 10px;
+    font-family: 'DM Mono', monospace; font-size: 12px; outline: none;
+  }
+  .notes-input:focus { border-color: var(--green); }
+
+  /* ADD GROUP */
+  .add-btn {
+    width: 100%; padding: 11px; background: transparent;
+    border: 1px dashed var(--border); border-radius: 8px;
+    color: var(--green); cursor: pointer; font-family: 'DM Mono', monospace;
+    font-size: 12px; letter-spacing: 0.08em; margin-top: 4px;
+    transition: border-color 0.2s, color 0.2s;
+  }
+  .add-btn:hover { border-color: var(--green); }
+
+  /* TOTALS GRID */
+  .totals-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; }
+  .stat-box { background: var(--surface2); border-radius: 8px; padding: 10px 8px; text-align: center; }
+  .stat-box.large .stat-val { font-size: 22px; }
+  .stat-val { font-size: 18px; font-weight: 500; color: var(--green-light); font-family: 'Playfair Display', serif; }
+  .stat-label { font-size: 8px; color: var(--text-dim); letter-spacing: 0.1em; text-transform: uppercase; margin-top: 3px; }
+
+  /* RATE BOX */
+  .rate-row { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-top: 8px; }
+  .rate-box { background: var(--surface2); border-radius: 8px; padding: 10px; text-align: center; }
+  .rate-val { font-size: 20px; font-weight: 500; font-family: 'Playfair Display', serif; }
+  .rate-val.green { color: var(--green-light); }
+  .rate-val.gold { color: var(--gold); }
+  .rate-label { font-size: 8px; color: var(--text-dim); letter-spacing: 0.1em; text-transform: uppercase; margin-top: 3px; }
+
+  /* ERROR / SUCCESS BANNERS */
+  .banner { border-radius: 8px; padding: 10px 14px; margin-bottom: 12px; font-size: 12px; }
+  .banner.error { background: var(--error-bg); border: 1px solid #6a2a2a; color: var(--error); }
+  .banner.success { background: #0a2a1a; border: 1px solid var(--green-dim); color: var(--success); }
+
+  /* ACTION BUTTONS */
+  .action-row { display: flex; gap: 10px; margin-top: 16px; }
+  .btn {
+    flex: 1; padding: 15px; border: none; border-radius: 10px;
+    font-family: 'DM Mono', monospace; font-size: 13px;
+    letter-spacing: 0.05em; cursor: pointer; transition: all 0.2s;
+  }
+  .btn-outline { background: transparent; border: 1px solid var(--border); color: var(--green-light); }
+  .btn-outline:hover { border-color: var(--green); }
+  .btn-primary { background: var(--green); color: #fff; }
+  .btn-primary:hover { background: var(--green-dim); }
+  .btn-primary.success { background: #2a5a2a; }
+  .btn-primary.error-state { background: #6a2a2a; }
+  .btn-primary:disabled { opacity: 0.6; cursor: not-allowed; }
+  .btn-secondary { background: var(--surface2); color: var(--text); border: 1px solid var(--border); }
+
+  /* SUMMARY */
+  .summary-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 10px; }
+  .summary-cell { background: var(--surface2); border-radius: 6px; padding: 8px 10px; }
+  .summary-key { font-size: 9px; color: var(--text-dim); letter-spacing: 0.1em; text-transform: uppercase; }
+  .summary-val { font-size: 13px; color: var(--text); margin-top: 3px; }
+
+  /* LOG TABLE */
+  .log-wrap { overflow-x: auto; }
+  table { width: 100%; border-collapse: collapse; font-size: 11px; }
+  th { padding: 6px 4px; color: var(--text-dim); text-align: left; border-bottom: 1px solid var(--border); font-weight: 400; letter-spacing: 0.05em; white-space: nowrap; }
+  td { padding: 6px 4px; border-bottom: 1px solid var(--surface2); }
+
+  /* PENDING QUEUE BADGE */
+  .queue-badge {
+    display: inline-block; background: var(--gold); color: #000;
+    border-radius: 4px; padding: 1px 6px; font-size: 9px;
+    letter-spacing: 0.05em; margin-left: 6px;
+  }
+</style>
+</head>
+<body>
+
+<div class="topbar">
+  <div class="topbar-icon">⛳</div>
+  <div>
+    <div class="topbar-title">GIRDIE GOLF</div>
+    <div class="topbar-sub">SCORECARD TRACKER</div>
+  </div>
+  <div class="topbar-info" id="topbarInfo" style="display:none">
+    <div class="name" id="topbarName"></div>
+    <div class="detail" id="topbarDetail"></div>
+  </div>
+</div>
+
+<div class="save-bar">
+  <div class="save-indicator">
+    <div class="save-dot" id="localDot"></div>
+    <span id="localStatus" style="color:var(--text-dim)">LOCAL: NOT SAVED</span>
+  </div>
+  <div id="sheetsStatus" class="sheets-status">SHEETS: PENDING</div>
+</div>
+
+<div class="tabs">
+  <button class="tab active" onclick="switchTab('entry')">?? DATA ENTRY</button>
+  <button class="tab" onclick="switchTab('summary')">?? SUMMARY</button>
+  <button class="tab" onclick="switchTab('scorecard')">?? SCORECARD</button>
+</div>
+
+<div class="main">
+
+  <!-- ENTRY TAB -->
+  <div id="tabEntry">
+
+    <div class="section">
+      <div class="section-title">SHIFT INFO</div>
+      <div class="row2">
+        <div class="field">
+          <label>Staff Name</label>
+          <input type="text" id="staffName" placeholder="e.g. Liz" oninput="onHeaderChange()">
+        </div>
+        <div class="field">
+          <label>Course</label>
+          <select id="course" onchange="onHeaderChange()">
+            <option value="">Select...</option>
+            <option>Jeffersonville</option>
+            <option>Glen Mills</option>
+            <option>Bella Vista</option>
+          </select>
+        </div>
+      </div>
+      <div class="row2">
+        <div class="field">
+          <label>Date</label>
+          <input type="date" id="date" oninput="onHeaderChange()">
+        </div>
+        <div class="field">
+          <label>Hole / Station</label>
+          <input type="text" id="station" placeholder="e.g. 4" inputmode="numeric" pattern="[0-9]*" oninput="onHeaderChange()">
+        </div>
+      </div>
+      <div class="row2">
+        <div class="field">
+          <label>Start Time</label>
+          <input type="time" id="startTime" oninput="onHeaderChange()">
+        </div>
+        <div class="field">
+          <label>End Time</label>
+          <input type="time" id="endTime" oninput="onHeaderChange()">
+        </div>
+      </div>
+      <div class="field">
+        <label>Donations Received ($) — optional</label>
+        <input type="number" id="donations" min="0" step="0.01" placeholder="0.00" oninput="onHeaderChange()">
+      </div>
+      <div class="row2">
+        <div class="field">
+          <label>Gift Cards — Start</label>
+          <input type="number" id="giftCardsStart" min="0" step="1" placeholder="e.g. 50" inputmode="numeric" pattern="[0-9]*" oninput="onHeaderChange()">
+        </div>
+        <div class="field">
+          <label>Gift Cards — End</label>
+          <input type="number" id="giftCardsEnd" min="0" step="1" placeholder="e.g. 42" inputmode="numeric" pattern="[0-9]*" oninput="onHeaderChange()">
+        </div>
+      </div>
+    </div>
+
+    <div class="section">
+      <div class="section-title">GROUPS (<span id="groupCount">0</span> entered)</div>
+      <div id="groupsContainer"></div>
+      <button class="add-btn" onclick="addGroup()">+ Add Group</button>
+    </div>
+
+    <div class="section">
+      <div class="section-title">RUNNING TOTALS</div>
+      <div class="totals-grid">
+        <div class="stat-box"><div class="stat-val" id="tGolfers">0</div><div class="stat-label">Golfers</div></div>
+        <div class="stat-box"><div class="stat-val" id="tPaying">0</div><div class="stat-label">Paying</div></div>
+        <div class="stat-box"><div class="stat-val" id="tGreen">0</div><div class="stat-label">Green Hits</div></div>
+        <div class="stat-box"><div class="stat-val" id="tCash">0</div><div class="stat-label"># Cash</div></div>
+        <div class="stat-box"><div class="stat-val" id="tElec">0</div><div class="stat-label"># Electronic</div></div>
+        <div class="stat-box"><div class="stat-val" id="tRate">0%</div><div class="stat-label">Opt In %</div></div>
+      </div>
+    </div>
+
+    <div id="errorBanner" class="banner error" style="display:none"></div>
+
+    <div class="action-row">
+      <button class="btn btn-outline" onclick="downloadCSV()">⬇ Download CSV</button>
+      <button class="btn btn-primary" id="submitBtn" onclick="submitToSheets()">Submit to Sheets</button>
+    </div>
+
+  </div>
+
+  <!-- SCORECARD TAB (manager view — shows full data including opt-in) -->
+  <div id="tabScorecard" style="display:none">
+    <div class="section">
+      <div class="section-title">Full Scorecard</div>
+      <div id="scorecardInfo" style="margin-bottom:12px;"></div>
+      <div id="scorecardTable"></div>
+    </div>
+  </div>
+
+  <!-- SUMMARY TAB -->
+  <div id="tabSummary" style="display:none">
+    <div class="section">
+      <div class="section-title">SHIFT SUMMARY</div>
+      <div class="summary-grid" id="summaryInfo"></div>
+      <div class="totals-grid" style="margin-top:10px" id="summaryStats"></div>
+      <div class="rate-row" id="summaryRates"></div>
+      <div id="summaryBanner" class="banner success" style="display:none;margin-top:10px">✓ Submitted to Google Sheets</div>
+    </div>
+    <div class="section">
+      <div class="section-title">GROUP LOG (<span id="summaryGroupCount">0</span>)</div>
+      <div class="log-wrap">
+        <table>
+          <thead><tr><th>#</th><th>Time</th><th>Glf</th><th>Pay</th><th>Cash</th><th>Elec</th><th>Green</th><th>Notes</th></tr></thead>
+          <tbody id="summaryTable"></tbody>
+        </table>
+      </div>
+    </div>
+    <div class="action-row">
+      <button class="btn btn-secondary" onclick="newShift()">New Shift</button>
+    </div>
+  </div>
+
+</div>
+
+<script>
+const APPS_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbwNyIZNDPrlKwSVjDCxtJUztcwKEwgNxi3cm1GTR8lqLmIWsFXyx5_Tnq604ICcxAs/exec";
+const STORAGE_KEY = "girdie_shift";
+const SUBMITTED_KEY = "girdie_submitted";
+
+// ── STATE ──────────────────────────────────────────────────
+let state = {
+  header: {
+    staffName: "", course: "", date: todayStr(), station: "",
+    startTime: "", endTime: "", donations: "", giftCardsStart: "", giftCardsEnd: ""
+  },
+  groups: [],
+  submitStatus: null, // null | saving | success | error
+  lastSaved: null,
+  sheetsSubmitted: false,
+  pendingQueue: [],
+};
+
+let autoSubmitTimer = null;
+let localSaveTimer = null;
+
+function todayStr() {
+  return new Date().toISOString().split("T")[0];
+}
+
+// ── INIT ───────────────────────────────────────────────────
+window.onload = function() {
+  loadFromLocal();
+  renderGroups();
+  updateTotals();
+  updateTopbar();
+  scheduleAutoSubmit();
+
+  // Set date default
+  if (!state.header.date) {
+    state.header.date = todayStr();
+    document.getElementById("date").value = state.header.date;
+  }
+};
+
+// ── LOCAL STORAGE ──────────────────────────────────────────
+function saveToLocal() {
+  try {
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+    setLocalStatus("saved");
+  } catch(e) {
+    setLocalStatus("error");
+  }
+}
+
+function loadFromLocal() {
+  try {
+    const raw = localStorage.getItem(STORAGE_KEY);
+    if (raw) {
+      const saved = JSON.parse(raw);
+      state = { ...state, ...saved };
+      // Restore header fields
+      const h = state.header;
+      document.getElementById("staffName").value = h.staffName || "";
+      document.getElementById("course").value = h.course || "";
+      document.getElementById("date").value = h.date || todayStr();
+      document.getElementById("station").value = h.station || "";
+      document.getElementById("startTime").value = h.startTime || "";
+      document.getElementById("endTime").value = h.endTime || "";
+      document.getElementById("donations").value = h.donation
+  document.getElementById("giftCardsStart").value = h.giftCardsStart || "";
+  document.getElementById("giftCardsEnd").value = h.giftCardsEnd || "";s || "";
+    document.getElementById("giftCardsStart").value = h.giftCardsStart || "";
+    document.getElementById("giftCardsEnd").value = h.giftCardsEnd || "";
+      setLocalStatus("saved", state.lastSaved);
+      if (state.sheetsSubmitted) setSheetsStatus("ok", "SUBMITTED");
+      else if (state.pendingQueue && state.pendingQueue.length > 0) setSheetsStatus("pending", "PENDING");
+    } else {
+      // Fresh start — add initial 10 empty groups
+      for (let i = 0; i < 10; i++) state.groups.push(newGroup());
+    }
+  } catch(e) {
+    for (let i = 0; i < 10; i++) state.groups.push(newGroup());
+  }
+}
+
+function debounceSave() {
+  clearTimeout(localSaveTimer);
+  localSaveTimer = setTimeout(() => {
+    state.lastSaved = new Date().toISOString();
+    saveToLocal();
+  }, 800);
+  setLocalStatus("saving");
+}
+
+function setLocalStatus(status, ts) {
+  const dot = document.getElementById("localDot");
+  const lbl = document.getElementById("localStatus");
+  dot.className = "save-dot " + status;
+  if (status === "saved") {
+    const t = ts ? new Date(ts) : new Date();
+    lbl.style.color = "var(--success)";
+    lbl.textContent = "LOCAL: SAVED " + t.toLocaleTimeString([], {hour:'2-digit',minute:'2-digit'});
+  } else if (status === "saving") {
+    lbl.style.color = "var(--gold)";
+    lbl.textContent = "LOCAL: SAVING...";
+  } else {
+    lbl.style.color = "var(--error)";
+    lbl.textContent = "LOCAL: ERROR";
+  }
+}
+
+function setSheetsStatus(type, msg) {
+  const el = document.getElementById("sheetsStatus");
+  el.className = "sheets-status " + type;
+  el.textContent = "SHEETS: " + msg;
+}
+
+// ── GROUPS ─────────────────────────────────────────────────
+let groupIdCounter = 0;
+function newGroup() {
+  return { id: groupIdCounter++, time: "", golfers: null, paying: null, cash: null, electronic: null, hitGreen: null, notes: "" };
+}
+
+function addGroup() {
+  state.groups.push(newGroup());
+  renderGroups();
+  updateTotals();
+  debounceSave();
+  // Scroll to bottom
+  setTimeout(() => window.scrollTo(0, document.body.scrollHeight), 50);
+}
+
+function removeGroup(id) {
+  state.groups = state.groups.filter(g => g.id !== id);
+  renderGroups();
+  updateTotals();
+  debounceSave();
+}
+
+function setGroupField(id, field, val) {
+  const g = state.groups.find(g => g.id === id);
+  if (!g) return;
+  g[field] = val;
+  updateTotals();
+  updateGroupCard(id);
+  debounceSave();
+}
+
+function toggleSelector(id, field, val, color) {
+  const g = state.groups.find(g => g.id === id);
+  if (!g) return;
+  g[field] = g[field] === val ? null : val;
+  // Update button visuals
+  const btns = document.querySelectorAll(`[data-gid="${id}"][data-field="${field}"]`);
+  btns.forEach(btn => {
+    const n = parseInt(btn.dataset.val);
+    btn.className = `sel-btn sel-${color}` + (g[field] === n ? " active" : "");
+  });
+  updateTotals();
+  updateGroupCardBorder(id);
+  debounceSave();
+}
+
+function updateGroupCardBorder(id) {
+  const g = state.groups.find(g => g.id === id);
+  if (!g) return;
+  const card = document.getElementById("card_" + id);
+  if (!card) return;
+  const filled = g.golfers !== null || g.paying !== null || g.cash !== null || g.electronic !== null;
+  card.className = "group-card" + (filled ? " filled" : "");
+}
+
+function updateGroupCard(id) {
+  updateGroupCardBorder(id);
+}
+
+function renderGroups() {
+  const container = document.getElementById("groupsContainer");
+  container.innerHTML = "";
+  const filled = state.groups.filter(g => g.golfers !== null || g.paying !== null || g.cash !== null || g.electronic !== null);
+  document.getElementById("groupCount").textContent = filled.length;
+
+  state.groups.forEach((g, i) => {
+    const isFilled = g.golfers !== null || g.paying !== null || g.cash !== null || g.electronic !== null;
+    const card = document.createElement("div");
+    card.className = "group-card" + (isFilled ? " filled" : "");
+    card.id = "card_" + g.id;
+
+    card.innerHTML = `
+      <div class="group-header">
+        <span class="group-num">#${i+1}</span>
+        <input class="group-time" type="time" value="${g.time || ""}" 
+          onchange="setGroupField(${g.id},'time',this.value)" placeholder="--:-- --">
+        <button class="remove-btn" onclick="removeGroup(${g.id})">×</button>
+      </div>
+      <div class="sel-row">
+        ${selGroup(g.id, "golfers", "# GOLFERS", "green", g.golfers)}
+        ${selGroup(g.id, "paying", "# PAYING", "green", g.paying)}
+      </div>
+      <div class="sel-row">
+        ${selGroup(g.id, "cash", "# PAID CASH", "gold", g.cash)}
+        ${selGroup(g.id, "electronic", "# PAID ELECTRONIC", "blue", g.electronic)}
+      </div>
+      <div class="notes-row">
+        ${selGroup(g.id, "hitGreen", "# HIT THE GREEN", "purple", g.hitGreen)}
+        <div class="notes-field">
+          <div class="sel-label">NOTES</div>
+          <input class="notes-input" type="text" value="${(g.notes||"").replace(/"/g,'&quot;')}" 
+            placeholder="Optional" oninput="setGroupField(${g.id},'notes',this.value)">
+        </div>
+      </div>
+    `;
+    container.appendChild(card);
+  });
+}
+
+function selGroup(gid, field, label, color, current) {
+  const btns = [0,1,2,3,4].map(n => {
+    const active = current === n ? " active" : "";
+    return `<button class="sel-btn sel-${color}${active}" 
+      data-gid="${gid}" data-field="${field}" data-val="${n}"
+      onclick="toggleSelector(${gid},'${field}',${n},'${color}')">${n}</button>`;
+  }).join("");
+  return `<div class="sel-group"><div class="sel-label">${label}</div><div class="sel-btns">${btns}</div></div>`;
+}
+
+// ── HEADER CHANGES ─────────────────────────────────────────
+function onHeaderChange() {
+  state.header.staffName = document.getElementById("staffName").value;
+  state.header.course = document.getElementById("course").value;
+  state.header.date = document.getElementById("date").value;
+  state.header.station = document.getElementById("station").value;
+  state.header.startTime = document.getElementById("startTime").value;
+  state.header.endTime = document.getElementById("endTime").value;
+  state.header.donations = document.getElementById("donations").value;
+  state.header.giftCardsStart = document.getElementById("giftCardsStart").value;
+  state.header.giftCardsEnd = document.getElementById("giftCardsEnd").value;
+  updateTopbar();
+  debounceSave();
+}
+
+function updateTopbar() {
+  const h = state.header;
+  const info = document.getElementById("topbarInfo");
+  if (h.staffName || h.course) {
+    info.style.display = "block";
+    document.getElementById("topbarName").textContent = h.staffName || "—";
+    document.getElementById("topbarDetail").textContent = (h.course || "—") + (h.station ? " · Hole " + h.station : "");
+  } else {
+    info.style.display = "none";
+  }
+}
+
+// ── TOTALS ─────────────────────────────────────────────────
+function computeTotals() {
+  return state.groups.reduce((acc, g) => ({
+    golfers: acc.golfers + (g.golfers ?? 0),
+    paying: acc.paying + (g.paying ?? 0),
+    cash: acc.cash + (g.cash ?? 0),
+    electronic: acc.electronic + (g.electronic ?? 0),
+    greenHits: acc.greenHits + (g.hitGreen ?? 0),
+  }), { golfers: 0, paying: 0, cash: 0, electronic: 0, greenHits: 0 });
+}
+
+function updateTotals() {
+  const t = computeTotals();
+  const rate = t.golfers > 0 ? Math.round((t.paying / t.golfers) * 100) : 0;
+  document.getElementById("tGolfers").textContent = t.golfers;
+  document.getElementById("tPaying").textContent = t.paying;
+  document.getElementById("tGreen").textContent = t.greenHits;
+  document.getElementById("tCash").textContent = t.cash;
+  document.getElementById("tElec").textContent = t.electronic;
+  document.getElementById("tRate").textContent = rate + "%";
+  const filled = state.groups.filter(g => g.golfers !== null || g.paying !== null || g.cash !== null || g.electronic !== null);
+  document.getElementById("groupCount").textContent = filled.length;
+}
+
+// ── AUTO-SUBMIT ────────────────────────────────────────────
+function scheduleAutoSubmit() {
+  clearInterval(autoSubmitTimer);
+  autoSubmitTimer = setInterval(backgroundSubmit, 5 * 60 * 1000); // every 5 min
+}
+
+function backgroundSubmit() {
+  const h = state.header;
+  if (!h.staffName || !h.course || !h.date) return; // not enough data yet
+  sendToSheets(true);
+}
+
+// ── SUBMIT ─────────────────────────────────────────────────
+function buildPayload() {
+  const t = computeTotals();
+  const h = state.header;
+  const notes = state.groups
+    .filter(g => g.notes && g.notes.trim())
+    .map((g, i) => "Grp " + (i+1) + ": " + g.notes.trim())
+    .join(" | ");
+  return {
+    staffName: h.staffName,
+    course: h.course,
+    date: h.date,
+    station: h.station,
+    startTime: h.startTime,
+    endTime: h.endTime,
+    golfers: t.golfers,
+    paying: t.paying,
+    cash: t.cash,
+    electronic: t.electronic,
+    greenHits: t.greenHits,
+    donations: parseFloat(h.donations) || 0,
+    holeInOne: 0,
+    notes: notes,
+    autoSave: false,
+    shiftId: state.shiftId || "",
+    groups: state.groups.filter(g => g.golfers||g.paying||g.cash||g.electronic||g.hitGreen||g.time),
+    giftCardsStart: parseInt(h.giftCardsStart) || 0,
+    giftCardsEnd: parseInt(h.giftCardsEnd) || 0,
+    giftCardsUsed: (parseInt(h.giftCardsStart)||0) - (parseInt(h.giftCardsEnd)||0),
+  };
+}
+
+function sendToSheets(isBackground) {
+  const payload = buildPayload();
+  const encoded = encodeURIComponent(JSON.stringify(payload));
+  const url = APPS_SCRIPT_URL + "?data=" + encoded;
+
+  if (!isBackground) {
+    document.getElementById("submitBtn").disabled = true;
+    document.getElementById("submitBtn").textContent = "⏳ Saving...";
+    setSheetsStatus("pending", "SUBMITTING...");
+  }
+
+  // Use image ping as most CORS-friendly approach
+  const img = new Image();
+  img.onload = img.onerror = function() {
+    if (!isBackground) {
+      state.sheetsSubmitted = true;
+      saveToLocal();
+      setSheetsStatus("ok", "SUBMITTED ✓");
+      document.getElementById("submitBtn").textContent = "✓ Saved to Sheets!";
+      document.getElementById("submitBtn").className = "btn btn-primary success";
+      document.getElementById("submitBtn").disabled = false;
+      document.getElementById("summaryBanner").style.display = "block";
+      switchTab("summary");
+    } else {
+      setSheetsStatus("ok", "AUTO-SAVED ✓");
+    }
+  };
+  img.src = url;
+
+  // Also try fetch no-cors as belt-and-suspenders
+  fetch(url, { method: "GET", mode: "no-cors" }).catch(() => {});
+}
+
+function submitToSheets() {
+  const h = state.header;
+  if (!h.staffName || !h.course || !h.date) {
+    showError("Please fill in Staff Name, Course, and Date before submitting.");
+    return;
+  }
+  hideError();
+  sendToSheets(false);
+}
+
+// ── TABS ───────────────────────────────────────────────────
+function switchTab(tab) {
+  document.getElementById("tabEntry").style.display = tab === "entry" ? "block" : "none";
+  document.getElementById("tabSummary").style.display = tab === "summary" ? "block" : "none";
+  document.getElementById("tabScorecard").style.display = tab === "scorecard" ? "block" : "none";
+  document.querySelectorAll(".tab").forEach((t, i) => {
+    const names = ["entry","summary","scorecard"];
+    t.className = "tab" + (names[i] === tab ? " active" : "");
+  });
+  if (tab === "summary") renderSummary();
+  if (tab === "scorecard") renderScorecard();
+}
+
+// ── SUMMARY ────────────────────────────────────────────────
+function renderSummary() {
+  const h = state.header;
+  const t = computeTotals();
+  const rate = t.golfers > 0 ? Math.round((t.paying / t.golfers) * 100) : 0;
+  const rev = (t.cash + t.electronic) * 20 + (parseFloat(h.donations) || 0);
+  const filled = state.groups.filter(g => g.golfers !== null || g.paying !== null || g.cash !== null || g.electronic !== null);
+
+  document.getElementById("summaryInfo").innerHTML = [
+    ["Staff", h.staffName || "—"], ["Course", h.course || "—"],
+    ["Date", h.date || "—"], ["Station", h.station || "—"],
+    ["Start", h.startTime || "—"], ["End", h.endTime || "—"],
+  ].map(([k,v]) => `<div class="summary-cell"><div class="summary-key">${k}</div><div class="summary-val">${v}</div></div>`).join("");
+
+  // NOTE: Golfer total and opt-in rate hidden from staffer view to prevent gaming
+  document.getElementById("summaryStats").innerHTML = [
+    ["Groups", filled.length], ["Paying", t.paying],
+    ["# Cash", t.cash], ["# Electronic", t.electronic], ["Green Hits", t.greenHits],
+  ].map(([l,v]) => `<div class="stat-box large"><div class="stat-val">${v}</div><div class="stat-label">${l}</div></div>`).join("");
+
+  document.getElementById("summaryRates").innerHTML = `
+    <div class="rate-box"><div class="rate-val gold">$${rev.toFixed(2)}</div><div class="rate-label">Est. Revenue</div></div>
+  `;
+
+  document.getElementById("summaryGroupCount").textContent = filled.length;
+  const tbody = document.getElementById("summaryTable");
+  tbody.innerHTML = filled.map((g, i) => `
+    <tr>
+      <td style="color:var(--text-dim)">${i+1}</td>
+      <td style="white-space:nowrap">${g.time || "—"}</td>
+      <td>${g.golfers ?? "—"}</td>
+      <td>${g.paying ?? "—"}</td>
+      <td>${g.cash ?? "—"}</td>
+      <td>${g.electronic ?? "—"}</td>
+      <td>${g.hitGreen ?? "—"}</td>
+      <td style="color:var(--text-dim);font-size:10px">${g.notes || ""}</td>
+    </tr>
+  `).join("");
+
+  if (state.sheetsSubmitted) {
+    document.getElementById("summaryBanner").style.display = "block";
+  }
+}
+
+// ── SCORECARD (manager view — shows full data) ─────────────────────────────
+function renderScorecard() {
+  const h = state.header;
+  const t = computeTotals();
+  const filled = state.groups.filter(g => g.golfers!==null||g.paying!==null||g.cash!==null||g.electronic!==null||g.time);
+  const rate = t.golfers > 0 ? Math.round((t.paying/t.golfers)*100) : 0;
+
+  document.getElementById("scorecardInfo").innerHTML = `
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-bottom:12px;">
+      ${[["Staff",h.staffName||"—"],["Course",h.course||"—"],["Date",h.date||"—"],["Station",h.station||"—"],["Start",h.startTime||"—"],["End",h.endTime||"—"],["GC Start",h.giftCardsStart||"—"],["GC End",h.giftCardsEnd||"—"]]
+        .map(([k,v])=>`<div style="background:var(--surface2);border-radius:6px;padding:8px 10px;">
+          <div style="font-size:9px;font-weight:700;color:var(--text-dim);letter-spacing:0.1em;text-transform:uppercase;">${k}</div>
+          <div style="font-size:13px;font-weight:600;color:var(--text);margin-top:2px;">${v}</div>
+        </div>`).join("")}
+    </div>
+    <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:6px;margin-bottom:4px;">
+      ${[["Groups",filled.length],["Golfers",t.golfers],["Paying",t.paying],["Opt In",rate+"%"]]
+        .map(([l,v])=>`<div style="background:var(--blue-light,#e8f4f8);border:1px solid var(--border);border-radius:6px;padding:8px 6px;text-align:center;">
+          <div style="font-size:16px;font-weight:700;color:#1a2040;">${v}</div>
+          <div style="font-size:9px;color:var(--text-dim);text-transform:uppercase;letter-spacing:0.06em;margin-top:2px;">${l}</div>
+        </div>`).join("")}
+    </div>`;
+
+  if (filled.length === 0) {
+    document.getElementById("scorecardTable").innerHTML =
+      '<div style="text-align:center;color:var(--text-dim);padding:24px;font-size:13px;">No groups entered yet</div>';
+    return;
+  }
+
+  const rows = filled.map((g, i) => {
+    const paying = g.paying ?? 0;
+    const golfers = g.golfers ?? 0;
+    const hitGreen = g.hitGreen ?? 0;
+    const cash = g.cash ?? 0;
+    const elec = g.electronic ?? 0;
+    return `<tr style="border-bottom:1px solid var(--border);${hitGreen>0?'background:#f0fff4;':''}">
+      <td style="padding:8px 6px;font-weight:700;color:var(--text-dim);font-size:11px;">${i+1}</td>
+      <td style="padding:8px 6px;font-size:12px;white-space:nowrap;">${g.time||'—'}</td>
+      <td style="padding:8px 6px;text-align:center;font-size:13px;font-weight:600;">${golfers||'—'}</td>
+      <td style="padding:8px 6px;text-align:center;font-size:13px;font-weight:600;">${paying||'—'}</td>
+      <td style="padding:8px 6px;text-align:center;font-size:11px;">
+        ${paying>0?`${cash>0?'💵×'+cash:''}${cash>0&&elec>0?' ':''}${elec>0?'📱×'+elec:''}`:'—'}
+      </td>
+      <td style="padding:8px 6px;text-align:center;">
+        ${hitGreen>0?`<span style="background:#2ab8d0;color:white;border-radius:12px;padding:2px 8px;font-size:11px;font-weight:700;">✓ ${hitGreen}</span>`:'—'}
+      </td>
+      <td style="padding:8px 6px;font-size:10px;color:var(--text-dim);max-width:80px;">${g.notes||""}</td>
+    </tr>`;
+  }).join("");
+
+  document.getElementById("scorecardTable").innerHTML = `
+    <div style="overflow-x:auto;border-radius:8px;border:1px solid var(--border);">
+      <table style="width:100%;border-collapse:collapse;font-size:12px;">
+        <thead>
+          <tr style="background:var(--surface2);border-bottom:2px solid var(--border);">
+            <th style="padding:7px 6px;text-align:left;font-size:9px;color:var(--text-dim);font-weight:700;letter-spacing:0.06em;">#</th>
+            <th style="padding:7px 6px;text-align:left;font-size:9px;color:var(--text-dim);font-weight:700;letter-spacing:0.06em;">TIME</th>
+            <th style="padding:7px 6px;text-align:center;font-size:9px;color:var(--text-dim);font-weight:700;letter-spacing:0.06em;">GLF</th>
+            <th style="padding:7px 6px;text-align:center;font-size:9px;color:var(--text-dim);font-weight:700;letter-spacing:0.06em;">PAY</th>
+            <th style="padding:7px 6px;text-align:center;font-size:9px;color:var(--text-dim);font-weight:700;letter-spacing:0.06em;">METHOD</th>
+            <th style="padding:7px 6px;text-align:center;font-size:9px;color:var(--text-dim);font-weight:700;letter-spacing:0.06em;">GREEN</th>
+            <th style="padding:7px 6px;text-align:left;font-size:9px;color:var(--text-dim);font-weight:700;letter-spacing:0.06em;">NOTES</th>
+          </tr>
+        </thead>
+        <tbody>${rows}</tbody>
+        <tfoot>
+          <tr style="background:var(--surface2);border-top:2px solid var(--border);">
+            <td colspan="2" style="padding:7px 6px;font-size:10px;font-weight:700;color:var(--text-dim);">TOTALS</td>
+            <td style="padding:7px 6px;text-align:center;font-weight:700;">${t.golfers}</td>
+            <td style="padding:7px 6px;text-align:center;font-weight:700;">${t.paying}</td>
+            <td style="padding:7px 6px;text-align:center;font-size:10px;">💵×${t.cash} 📱×${t.electronic}</td>
+            <td style="padding:7px 6px;text-align:center;font-weight:700;">${t.greenHits}</td>
+            <td></td>
+          </tr>
+        </tfoot>
+      </table>
+    </div>`;
+}
+
+// ── CSV DOWNLOAD ───────────────────────────────────────────
+function downloadCSV() {
+  const h = state.header;
+  const t = computeTotals();
+  const filled = state.groups.filter(g => g.golfers !== null || g.paying !== null || g.cash !== null || g.electronic !== null);
+  const esc = v => '"' + String(v ?? "").replace(/"/g,'""') + '"';
+  const rows = [
+    ["Staff Name", h.staffName], ["Course", h.course], ["Date", h.date],
+    ["Station", h.station], ["Start", h.startTime], ["End", h.endTime],
+    ["Donations", h.donations || 0], [],
+    ["#","Time","Golfers","Paying","Cash","Electronic","Hit Green","Notes"],
+    ...filled.map((g,i) => [i+1, g.time, g.golfers??'', g.paying??'', g.cash??'', g.electronic??'', g.hitGreen??'', g.notes]),
+    [],
+    ["TOTALS","",t.golfers,t.paying,t.cash,t.electronic,t.greenHits,""]
+  ];
+  const csv = rows.map(r => r.map(esc).join(",")).join("
+");
+  const blob = new Blob([csv], {type:"text/csv"});
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  a.href = url;
+  a.download = `${h.course||"scorecard"}_${h.date||"date"}_${h.staffName||"staff"}.csv`;
+  a.click();
+  URL.revokeObjectURL(url);
+}
+
+// ── NEW SHIFT ──────────────────────────────────────────────
+function newShift() {
+  if (!confirm("Start a new shift? This will clear all current data.")) return;
+  localStorage.removeItem(STORAGE_KEY);
+  state = {
+    header: { staffName: "", course: "", date: todayStr(), station: "", startTime: "", endTime: "", donations: "", giftCardsStart: "", giftCardsEnd: "" },
+    groups: [],
+    submitStatus: null, lastSaved: null, sheetsSubmitted: false, pendingQueue: [],
+  };
+  for (let i = 0; i < 10; i++) state.groups.push(newGroup());
+  document.getElementById("staffName").value = "";
+  document.getElementById("course").value = "";
+  document.getElementById("date").value = todayStr();
+  document.getElementById("station").value = "";
+  document.getElementById("startTime").value = "";
+  document.getElementById("endTime").value = "";
+  document.getElementById("donations").value = "";
+  document.getElementById("submitBtn").textContent = "Submit to Sheets";
+  document.getElementById("submitBtn").className = "btn btn-primary";
+  document.getElementById("submitBtn").disabled = false;
+  document.getElementById("summaryBanner").style.display = "none";
+  setSheetsStatus("", "PENDING");
+  setLocalStatus("saving");
+  renderGroups();
+  updateTotals();
+  updateTopbar();
+  switchTab("entry");
+}
+
+// ── UTILS ──────────────────────────────────────────────────
+function showError(msg) {
+  const b = document.getElementById("errorBanner");
+  b.textContent = "⚠ " + msg;
+  b.style.display = "block";
+}
+function hideError() {
+  document.getElementById("errorBanner").style.display = "none";
+}
+</script>
+</body>
+</html>
